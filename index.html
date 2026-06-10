@@ -2891,7 +2891,7 @@ async function sendMessage() {
         + '📱 ' + (u.phone || '—') + '\n'
         + '🆔 `' + clientId + '`\n\n'
         + '💬 ' + text + '\n\n'
-        + '_Ответьте на это сообщение в Telegram_';
+        + '_Сделайте Reply на это сообщение чтобы клиент получил ответ_';
 
       await fetch('https://api.telegram.org/bot' + TG_CONFIG.botToken + '/sendMessage', {
         method: 'POST',
@@ -2900,7 +2900,7 @@ async function sendMessage() {
           chat_id: TG_CONFIG.masterChatId,
           text: tgText,
           parse_mode: 'Markdown',
-          reply_markup: { inline_keyboard: [[{ text: '↩️ Ответить', callback_data: 'reply_' + clientId }]] }
+          parse_mode: 'Markdown'
         })
       });
       updateLastMsgStatus('✓ Доставлено мастеру');
@@ -2939,9 +2939,10 @@ async function pollTgReplies() {
       tgLastUpdateId = upd.update_id;
       // Мастер отвечает реплаем в Telegram — бот пересылает текст
       const msg = upd.message;
-      if (msg && msg.reply_to_message) {
+      if (msg && msg.reply_to_message && msg.text) {
         const orig = msg.reply_to_message.text || '';
-        if (orig.includes('`' + clientId + '`')) {
+        // Master replies to a message containing this client's ID
+        if (orig.includes(clientId)) {
           receiveMasterReply(msg.text);
         }
       }
