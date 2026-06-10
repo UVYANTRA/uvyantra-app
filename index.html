@@ -1,0 +1,4264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UVYANTRA — Ювелирная мастерская</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E5C97E;
+    --gold-pale: #F7EDD0;
+    --dark: #0F0E0B;
+    --dark-2: #1A1915;
+    --dark-3: #252420;
+    --dark-4: #2E2D28;
+    --surface: #1E1D19;
+    --text: #F0EAD6;
+    --text-muted: #8B8573;
+    --text-dim: #5C5848;
+    --success: #4CAF84;
+    --danger: #E05252;
+    --info: #5B9BD5;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --transition: 0.25s cubic-bezier(.4,0,.2,1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    background: var(--dark);
+  }
+
+  /* ---- SCREENS ---- */
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
+  .screen.active { display: flex; }
+
+  /* ---- BOTTOM NAV ---- */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: var(--dark-2);
+    border-top: 1px solid rgba(201,168,76,0.15);
+    display: flex;
+    z-index: 100;
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 4px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color var(--transition);
+    font-family: 'Inter', sans-serif;
+    position: relative;
+  }
+  .nav-btn.active { color: var(--gold); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn span { font-size: 10px; font-weight: 500; letter-spacing: 0.02em; }
+  .nav-badge {
+    position: absolute;
+    top: 6px;
+    right: calc(50% - 18px);
+    background: var(--gold);
+    color: var(--dark);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---- HEADER ---- */
+  .screen-header {
+    padding: 54px 20px 16px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .screen-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 30px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .screen-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px;
+    border: 1px solid rgba(201,168,76,0.1);
+  }
+  .card-gold {
+    background: linear-gradient(135deg, #2A2208 0%, #1A1508 100%);
+    border: 1px solid rgba(201,168,76,0.3);
+  }
+
+  /* ---- DIVIDER ---- */
+  .divider {
+    height: 1px;
+    background: rgba(201,168,76,0.1);
+    margin: 16px 0;
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--dark);
+  }
+  .btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.4);
+    color: var(--gold-light);
+  }
+  .btn-ghost {
+    background: var(--dark-3);
+    color: var(--text);
+  }
+  .btn-full { width: 100%; }
+
+  /* ---- STATUS BADGES ---- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .badge-ready { background: rgba(76,175,132,0.15); color: #4CAF84; }
+  .badge-progress { background: rgba(229,201,126,0.15); color: var(--gold-light); }
+  .badge-pending { background: rgba(91,155,213,0.15); color: #5B9BD5; }
+  .badge-done { background: rgba(92,88,72,0.3); color: var(--text-muted); }
+
+  /* ---- GOLD ORNAMENT ---- */
+  .ornament {
+    text-align: center;
+    color: var(--gold);
+    font-size: 18px;
+    letter-spacing: 8px;
+    opacity: 0.5;
+    margin: 8px 0;
+  }
+
+  /* ========== HOME SCREEN ========== */
+  #home .hero {
+    background: linear-gradient(180deg, #1A1508 0%, var(--dark) 100%);
+    padding: 54px 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  #home .hero::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .hero-logo {
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .hero-brand-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .hero-brand-tagline {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .hero-greeting {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .hero-date { font-size: 12px; color: var(--text-muted); }
+
+  .bonus-card {
+    margin: 0 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #2A2208 0%, #1A1508 50%, #221B06 100%);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+  }
+  .bonus-card::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+  .bonus-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .bonus-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+  .bonus-unit { font-size: 16px; color: var(--gold); margin-left: 4px; }
+  .bonus-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .bonus-level {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--gold-light);
+  }
+  .bonus-level-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+  .bonus-expiry { font-size: 11px; color: var(--text-dim); }
+  .progress-bar-wrap { margin-top: 14px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+  .progress-bar {
+    height: 4px;
+    background: rgba(201,168,76,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .section { padding: 20px 20px 0; }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-link { font-size: 12px; color: var(--gold); font-family: 'Inter', sans-serif; cursor: pointer; }
+
+  .order-item {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(201,168,76,0.08);
+    cursor: pointer;
+    transition: border-color var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .order-item:hover { border-color: rgba(201,168,76,0.25); }
+  .order-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--dark-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--gold);
+  }
+  .order-info { flex: 1; min-width: 0; }
+  .order-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .order-meta { font-size: 12px; color: var(--text-muted); }
+  .order-date { font-size: 11px; color: var(--text-dim); text-align: right; white-space: nowrap; }
+
+  .promo-scroll { display: flex; gap: 12px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .promo-scroll::-webkit-scrollbar { display: none; }
+  .promo-card {
+    min-width: 220px;
+    background: var(--dark-3);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    border: 1px solid rgba(201,168,76,0.1);
+    flex-shrink: 0;
+  }
+  .promo-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .promo-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+  .promo-until { font-size: 11px; color: var(--text-muted); }
+
+  /* ========== ORDERS SCREEN ========== */
+  .order-full {
+    background: var(--surface);
+    border-radius: var(--radius);
+    margin: 0 20px 12px;
+    padding: 18px;
+    border: 1px solid rgba(201,168,76,0.1);
+    cursor: pointer;
+    transition: border-color var(--transition);
+  }
+  .order-full:hover { border-color: rgba(201,168,76,0.25); }
+  .order-full-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .order-full-title { font-size: 15px; font-weight: 500; color: var(--text); }
+  .order-full-id { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .order-timeline { display: flex; gap: 6px; margin-top: 14px; }
+  .timeline-step {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--dark-4);
+  }
+  .timeline-step.done { background: var(--gold); }
+  .timeline-step.active { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+  .order-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .order-price { font-size: 15px; font-weight: 500; color: var(--gold-light); }
+  .order-date-small { font-size: 11px; color: var(--text-dim); }
+
+  /* ========== ORDER DETAIL MODAL ========== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--dark-2);
+    border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px 20px 40px;
+    border-top: 1px solid rgba(201,168,76,0.2);
+  }
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--dark-4);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; margin-bottom: 4px; }
+  .modal-id { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+
+  .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(201,168,76,0.07); }
+  .detail-label { font-size: 12px; color: var(--text-muted); }
+  .detail-value { font-size: 13px; color: var(--text); font-weight: 500; text-align: right; }
+
+  .status-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+  }
+  .status-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    position: relative;
+  }
+  .status-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 28px;
+    width: 2px;
+    height: calc(100% - 4px);
+    background: rgba(201,168,76,0.15);
+  }
+  .status-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    border: 2px solid rgba(201,168,76,0.2);
+    background: var(--dark-3);
+    color: var(--text-dim);
+    position: relative;
+    z-index: 1;
+    margin-top: 2px;
+  }
+  .status-dot.done { background: rgba(76,175,132,0.15); border-color: #4CAF84; color: #4CAF84; }
+  .status-dot.active { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
+  .status-info { flex: 1; padding: 4px 0 20px; }
+  .status-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .status-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ========== QR SCREEN ========== */
+  .qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  .qr-select { margin: 0 20px 16px; }
+  .select-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .order-select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    appearance: none;
+    outline: none;
+  }
+  .qr-box {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    margin: 4px 0 20px;
+    position: relative;
+  }
+  .qr-box svg { display: block; }
+  .qr-corners::before,
+  .qr-corners::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: var(--gold);
+    border-style: solid;
+  }
+  .code-display {
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 16px;
+  }
+  .code-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .code-digits {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+  .code-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .qr-instructions {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    width: 100%;
+    max-width: 340px;
+    border: 1px solid rgba(201,168,76,0.08);
+  }
+  .qr-instructions p { font-size: 12px; color: var(--text-muted); line-height: 1.6; display: flex; gap: 8px; align-items: flex-start; }
+  .qr-instructions p + p { margin-top: 8px; }
+  .step-num {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--dark-3);
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ========== BONUSES SCREEN ========== */
+  .bonus-history-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(201,168,76,0.07);
+  }
+  .bonus-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+  .bonus-icon.positive { background: rgba(76,175,132,0.12); }
+  .bonus-icon.negative { background: rgba(224,82,82,0.12); }
+  .bonus-icon.birthday { background: rgba(201,168,76,0.12); }
+  .bonus-hist-info { flex: 1; }
+  .bonus-hist-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .bonus-hist-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .bonus-hist-amount { font-size: 15px; font-weight: 600; }
+  .bonus-hist-amount.positive { color: var(--success); }
+  .bonus-hist-amount.negative { color: var(--danger); }
+
+  .levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .level-card {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    border: 1px solid rgba(201,168,76,0.1);
+    position: relative;
+  }
+  .level-card.current { border-color: rgba(201,168,76,0.35); background: linear-gradient(135deg, #2A2208 0%, #1A1508 100%); }
+  .level-current-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(201,168,76,0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .level-icon { font-size: 22px; margin-bottom: 8px; }
+  .level-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .level-desc { font-size: 11px; color: var(--text-muted); }
+
+  /* ========== CHAT SCREEN ========== */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .msg {
+    display: flex;
+    gap: 10px;
+    max-width: 85%;
+  }
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .msg.bot { align-self: flex-start; }
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    align-self: flex-end;
+    color: var(--dark);
+    font-weight: 700;
+  }
+  .msg-bubble {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    border: 1px solid rgba(201,168,76,0.08);
+  }
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, #2A2208, #1E1A07);
+    border-color: rgba(201,168,76,0.2);
+    border-radius: 16px 4px 16px 16px;
+    color: var(--text);
+  }
+  .msg.bot .msg-bubble { border-radius: 4px 16px 16px 16px; }
+  .msg-time { font-size: 10px; color: var(--text-dim); margin-top: 4px; text-align: right; }
+  .typing-indicator { display: flex; gap: 4px; padding: 4px 0; }
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: typingPulse 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingPulse {
+    0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+    30% { opacity: 1; transform: scale(1); }
+  }
+  .chat-input-area {
+    padding: 12px 20px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+    border-top: 1px solid rgba(201,168,76,0.1);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: var(--dark-2);
+    flex-shrink: 0;
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    max-height: 100px;
+    overflow-y: auto;
+    line-height: 1.4;
+  }
+  .chat-input:focus { border-color: rgba(201,168,76,0.4); }
+  .chat-input::placeholder { color: var(--text-dim); }
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    border: none;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity var(--transition);
+  }
+  .send-btn:disabled { opacity: 0.4; }
+  .send-btn svg { width: 18px; height: 18px; color: var(--dark); }
+
+  /* Chat screen layout fix */
+  #chat {
+    padding-bottom: 0 !important;
+  }
+  #chat .screen-header { flex-shrink: 0; }
+  #chat .chat-messages { flex: 1; min-height: 0; }
+  #chat .chat-input-area {
+    flex-shrink: 0;
+    margin-bottom: 60px;
+  }
+
+  /* ========== PROFILE ========== */
+  .profile-header {
+    background: linear-gradient(180deg, #1A1508 0%, var(--dark) 100%);
+    padding: 54px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    color: var(--dark);
+    margin-bottom: 14px;
+    border: 3px solid rgba(201,168,76,0.3);
+  }
+  .profile-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 400; color: var(--text); }
+  .profile-phone { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .profile-birthday {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--gold-light);
+    background: rgba(201,168,76,0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(201,168,76,0.07);
+    cursor: pointer;
+    transition: background var(--transition);
+  }
+  .menu-item:hover { background: rgba(201,168,76,0.04); }
+  .menu-item-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--dark-3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+  .menu-item-info { flex: 1; }
+  .menu-item-title { font-size: 14px; color: var(--text); }
+  .menu-item-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .menu-chevron { color: var(--text-dim); }
+
+  /* ========== BIRTHDAY BANNER ========== */
+  .birthday-banner {
+    margin: 0 20px 16px;
+    background: linear-gradient(135deg, #2A1A08 0%, #1A0F04 100%);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .birthday-emoji { font-size: 28px; }
+  .birthday-text h4 { font-size: 14px; font-weight: 600; color: var(--gold-light); margin-bottom: 3px; }
+  .birthday-text p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* Notification dot */
+  .notif-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Tab filter */
+  .tab-filter {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .tab-filter::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(201,168,76,0.2);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .tab-btn.active {
+    background: rgba(201,168,76,0.12);
+    border-color: rgba(201,168,76,0.4);
+    color: var(--gold-light);
+  }
+
+  /* Guarantee badge */
+  .guarantee-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--info);
+    background: rgba(91,155,213,0.1);
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-top: 6px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 88px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    z-index: 999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Receipt */
+  .receipt {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px dashed rgba(201,168,76,0.2);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+  .receipt-title {
+    text-align: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--gold-light);
+    margin-bottom: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+  }
+  .receipt-line { display: flex; justify-content: space-between; }
+  .receipt-total { display: flex; justify-content: space-between; color: var(--text); font-size: 14px; font-weight: 700; padding-top: 8px; border-top: 1px dashed rgba(201,168,76,0.2); margin-top: 4px; }
+
+  /* Scroll utils */
+  .scroll-x { overflow-x: auto; scrollbar-width: none; }
+  .scroll-x::-webkit-scrollbar { display: none; }
+
+  /* ---- SETTINGS ---- */
+  .settings-field-group {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 4px 0;
+    border: 1px solid rgba(201,168,76,0.08);
+  }
+  .settings-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 10px 14px 4px;
+  }
+  .settings-field {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(201,168,76,0.07);
+  }
+  .settings-field:last-child { border-bottom: none; }
+  .settings-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+  .settings-input {
+    width: 100%;
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .settings-input:focus { border-color: rgba(201,168,76,0.4); }
+  .settings-input option { background: var(--dark-3); }
+  .settings-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(201,168,76,0.07);
+    gap: 12px;
+  }
+  .s-toggle {
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: var(--dark-4);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .s-toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    transition: left 0.2s;
+  }
+  .s-toggle.on { background: var(--gold); }
+  .s-toggle.on::after { left: 20px; }
+
+
+  /* ---- AUTH SCREEN ---- */
+  #auth-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    z-index: 300;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 28px;
+  }
+  #auth-screen.active { display: flex; }
+  .auth-logo {
+    width: 72px; height: 72px;
+    background: transparent;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+  }
+  .auth-logo svg { width: 36px; height: 36px; }
+  .auth-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px; font-weight: 300; letter-spacing: 0.15em;
+    color: var(--text); margin-bottom: 4px;
+  }
+  .auth-tagline { font-size: 12px; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 48px; }
+  .auth-step { width: 100%; max-width: 340px; }
+  .auth-label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+  .auth-input {
+    width: 100%; background: var(--surface);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    color: var(--text); font-family: 'Inter', sans-serif; font-size: 18px;
+    outline: none; letter-spacing: 0.05em; text-align: center;
+    transition: border-color 0.2s; margin-bottom: 16px;
+  }
+  .auth-input:focus { border-color: rgba(201,168,76,0.5); }
+  .auth-hint { font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 12px; line-height: 1.6; }
+  .auth-back { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; margin-top: 16px; }
+  .otp-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
+  .otp-digit {
+    width: 52px; height: 60px;
+    background: var(--surface); border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 24px; font-weight: 600; text-align: center;
+    font-family: 'Cormorant Garamond', serif; outline: none;
+    transition: border-color 0.2s;
+  }
+  .otp-digit:focus { border-color: rgba(201,168,76,0.6); }
+  .resend-btn { background: none; border: none; color: var(--gold); font-size: 13px; cursor: pointer; margin-top: 8px; display: block; width: 100%; text-align: center; }
+  .resend-btn:disabled { color: var(--text-dim); cursor: default; }
+
+
+  /* ---- RECEIPT FORM ---- */
+  .r-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(201,168,76,0.05);
+  }
+  .r-row:last-child { border-bottom: none; }
+  .r-lbl { font-size: 10px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+  .r-val { font-size: 11px; color: var(--text); font-weight: 500; text-align: right; }
+
+
+  /* ---- DOCS SCREEN ---- */
+  .doc-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(201,168,76,0.08);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color var(--transition);
+  }
+  .doc-card:hover { border-color: rgba(201,168,76,0.25); }
+  .doc-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--dark-3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .doc-info { flex: 1; min-width: 0; }
+  .doc-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .doc-sub { font-size: 11px; color: var(--text-muted); }
+
+
+  /* ---- CONSENT CHECKBOXES ---- */
+  .consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .consent-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+  .consent-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .consent-link {
+    color: var(--gold-light);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .consent-link:hover { color: var(--gold); }
+
+</style>
+
+  <!-- Firebase SDK — loaded only if push is configured -->
+  <script>
+  (function() {
+    var cfg = 'ВСТАВЬТЕ_API_KEY';
+    if (!cfg.includes('ВСТАВЬТЕ')) {
+      var s1 = document.createElement('script');
+      s1.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+      var s2 = document.createElement('script');
+      s2.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js';
+      document.head.appendChild(s1);
+      document.head.appendChild(s2);
+    }
+  })();
+  </script>
+</head>
+<body>
+<div id="app">
+  <!-- ============ HOME ============ -->
+  <div class="screen active" id="home">
+    <div class="hero">
+      <div class="hero-brand">
+        <div class="hero-logo" id="logo-wrap" style="width:44px;height:44px;background:linear-gradient(135deg,#E5C97E,#C9A84C);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px;">
+          <img src="https://static.tildacdn.com/tild6461-3565-4365-b366-343964653965/svg_1781008987015.svg"
+               alt="UVYANTRA" id="logo-img"
+               style="width:100%;height:100%;object-fit:contain;">
+        </div>
+        <div>
+          <div class="hero-brand-name">UVYANTRA</div>
+          <div class="hero-brand-tagline">Ювелирная мастерская</div>
+        </div>
+      </div>
+      <div class="hero-greeting" id="greeting">Добрый вечер, Елена</div>
+      <div class="hero-date" id="today-date"></div>
+    </div>
+
+    <!-- Birthday Banner (shown near birthday) -->
+    <div class="birthday-banner" id="birthday-banner" style="display:none">
+      <div class="birthday-emoji">🎂</div>
+      <div class="birthday-text">
+        <h4>С Днём рождения!</h4>
+        <p>Вам начислено 500 бонусов как подарок. Поздравляем!</p>
+      </div>
+    </div>
+
+    <!-- Bonus Card -->
+    <div class="bonus-card" style="margin:0 20px 20px;">
+      <div class="bonus-label">Ваши бонусы</div>
+      <div style="display:flex;align-items:baseline;gap:4px;">
+        <div class="bonus-amount" id="bonus-amount-home">1 248</div>
+        <div class="bonus-unit">₽</div>
+      </div>
+      <div class="bonus-meta">
+        <div class="bonus-level"><div class="bonus-level-dot"></div> <span id="bonus-level-home">Уровень «Золото»</span></div>
+        <div class="bonus-expiry">До 31.12.2025</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-label">
+          <span class="progress-to-label">До «Платины»</span>
+          <span class="progress-remain">3 752 ₽</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:25%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo banner (hidden in production) -->
+    <div id="demo-banner" style="display:none;margin:0 20px 12px;background:rgba(91,155,213,0.1);border:1px solid rgba(91,155,213,0.3);border-radius:10px;padding:12px 14px;gap:10px;align-items:flex-start;">
+      <div style="font-size:18px;">🔧</div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#5B9BD5;margin-bottom:2px;">Демо-режим</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">Данные тестовые. Вставьте URL Google Apps Script в переменную <code style="color:var(--gold)">API_URL</code> в коде приложения.</div>
+      </div>
+    </div>
+
+    <!-- Active Orders -->
+    <div class="section">
+      <div class="section-title">
+        Активные заказы
+        <span class="section-link" onclick="nav('orders')">Все →</span>
+      </div>
+      <div id="home-orders"></div>
+    </div>
+
+    <!-- Promos -->
+    <div class="section">
+      <div class="section-title">Акции</div>
+    </div>
+    <div class="promo-scroll" id="promo-scroll" style="padding-bottom:0"></div>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- ============ ORDERS ============ -->
+  <div class="screen" id="orders">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">Мои заказы</div>
+        <div class="screen-subtitle">История обращений</div>
+      </div>
+    </div>
+
+    <div class="tab-filter">
+      <button class="tab-btn active" onclick="filterOrders('all', this)">Все</button>
+      <button class="tab-btn" onclick="filterOrders('active', this)">Активные</button>
+      <button class="tab-btn" onclick="filterOrders('ready', this)">К выдаче</button>
+      <button class="tab-btn" onclick="filterOrders('done', this)">Полученные</button>
+    </div>
+
+    <div id="orders-list">
+      <div class="order-full" onclick="openOrderDetail('ord-002')" data-status="ready">
+        <div class="order-full-header">
+          <div>
+            <div class="order-full-title">Ремонт цепочки золотой</div>
+            <div class="order-full-id">№ AUR-2024-089</div>
+          </div>
+          <span class="badge badge-ready">Готово</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+          <span class="guarantee-badge">🛡 Гарантия 6 мес. до 15.08.2025</span>
+        </div>
+        <div class="order-timeline">
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+          <div class="timeline-step active"></div>
+        </div>
+        <div class="order-footer">
+          <div class="order-price">1 200 ₽</div>
+          <div class="order-date-small">15.01.2025</div>
+        </div>
+      </div>
+
+      <div class="order-full" onclick="openOrderDetail('ord-001')" data-status="active">
+        <div class="order-full-header">
+          <div>
+            <div class="order-full-title">Кольцо с бриллиантом 0.3ct</div>
+            <div class="order-full-id">№ AUR-2024-087</div>
+          </div>
+          <span class="badge badge-progress">В работе</span>
+        </div>
+        <div class="order-timeline">
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+          <div class="timeline-step active"></div>
+          <div class="timeline-step"></div>
+        </div>
+        <div class="order-footer">
+          <div class="order-price">42 500 ₽</div>
+          <div class="order-date-small">10.01.2025</div>
+        </div>
+      </div>
+
+      <div class="order-full" onclick="openOrderDetail('ord-003')" data-status="done">
+        <div class="order-full-header">
+          <div>
+            <div class="order-full-title">Гравировка на кулоне</div>
+            <div class="order-full-id">№ AUR-2023-234</div>
+          </div>
+          <span class="badge badge-done">Получено</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+          <span class="guarantee-badge">🛡 Гарантия 3 мес. до 20.03.2025</span>
+        </div>
+        <div class="order-timeline">
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+        </div>
+        <div class="order-footer">
+          <div class="order-price">800 ₽</div>
+          <div class="order-date-small">20.12.2024</div>
+        </div>
+      </div>
+
+      <div class="order-full" onclick="openOrderDetail('ord-004')" data-status="done">
+        <div class="order-full-header">
+          <div>
+            <div class="order-full-title">Чистка и полировка серёг</div>
+            <div class="order-full-id">№ AUR-2023-198</div>
+          </div>
+          <span class="badge badge-done">Получено</span>
+        </div>
+        <div class="order-timeline">
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+          <div class="timeline-step done"></div>
+        </div>
+        <div class="order-footer">
+          <div class="order-price">600 ₽</div>
+          <div class="order-date-small">05.11.2024</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ QR SCREEN ============ -->
+  <div class="screen" id="pickup">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">Получить заказ</div>
+        <div class="screen-subtitle">Покажите QR или назовите код</div>
+      </div>
+    </div>
+
+    <div class="qr-select">
+      <div class="select-label">Выберите заказ для получения:</div>
+      <select class="order-select" id="pickup-select" onchange="updateQRFromSelect()">
+        <option value="ord-002">№ AUR-2024-089 — Ремонт цепочки (Готов)</option>
+      </select>
+    </div>
+
+    <div class="qr-container">
+      <div class="qr-box" id="qr-box">
+        <svg id="qr-svg" width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        </svg>
+      </div>
+
+      <div class="code-display">
+        <div class="code-label">Код для получения</div>
+        <div class="code-digits" id="pickup-code">7842</div>
+        <div class="code-hint">Назовите код мастеру</div>
+      </div>
+
+      <div class="qr-instructions">
+        <p><span class="step-num">1</span> Придите в мастерскую в рабочее время</p>
+        <p><span class="step-num">2</span> Покажите QR-код на экране <em>или</em> назовите 4-значный код</p>
+        <p><span class="step-num">3</span> Мастер выдаст ваш заказ и подпишет квитанцию</p>
+      </div>
+
+      <div style="margin-top:16px;width:100%;max-width:340px;">
+        <button class="btn btn-outline btn-full" onclick="showReceiptModal()">
+          📄 Электронная квитанция
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BONUSES ============ -->
+  <div class="screen" id="bonuses">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">Бонусная программа</div>
+        <div class="screen-subtitle">Накопительные привилегии</div>
+      </div>
+    </div>
+
+    <!-- Big bonus card -->
+    <div style="padding: 0 20px 20px;">
+      <div class="card card-gold">
+        <div class="bonus-label">Ваш баланс</div>
+        <div style="display:flex;align-items:baseline;gap:4px;">
+          <div class="bonus-amount">1 248</div>
+          <div class="bonus-unit">₽</div>
+        </div>
+        <div class="bonus-meta">
+          <div class="bonus-level"><div class="bonus-level-dot"></div> Уровень «Золото»</div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-label">
+            <span>До «Платины»</span>
+            <span>3 752 ₽</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:25%"></div>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Начислено</div>
+            <div style="font-size:16px;font-weight:600;color:var(--success);">+2 490 ₽</div>
+          </div>
+          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Потрачено</div>
+            <div style="font-size:16px;font-weight:600;color:var(--danger);">−1 242 ₽</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Levels -->
+    <div class="section">
+      <div class="section-title" style="font-size:17px">Уровни программы</div>
+      <div class="levels-grid">
+        <div class="level-card" data-level="silver">
+          <div class="level-icon">🤍</div>
+          <div class="level-name">Серебро</div>
+          <div class="level-desc">от 0 ₽ · 5% бонусов</div>
+          <div class="level-current-badge" style="display:none">ВЫ ЗДЕСЬ</div>
+        </div>
+        <div class="level-card current" data-level="gold">
+          <div class="level-current-badge">ВЫ ЗДЕСЬ</div>
+          <div class="level-icon">💛</div>
+          <div class="level-name">Золото</div>
+          <div class="level-desc">от 100 000 ₽ · 7% бонусов</div>
+        </div>
+        <div class="level-card" data-level="platinum">
+          <div class="level-icon">💎</div>
+          <div class="level-name">Платина</div>
+          <div class="level-desc">от 500 000 ₽ · 10% бонусов</div>
+          <div class="level-current-badge" style="display:none">ВЫ ЗДЕСЬ</div>
+        </div>
+        <div class="level-card" data-level="vip">
+          <div class="level-icon">👑</div>
+          <div class="level-name">VIP</div>
+          <div class="level-desc">от 1 000 000 ₽ · 15%</div>
+          <div class="level-current-badge" style="display:none">ВЫ ЗДЕСЬ</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 20px 0;">
+      <div onclick="nav('docs')" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:12px 14px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid rgba(201,168,76,0.1);">
+        <span style="font-size:16px;">📋</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:var(--text);">Правила бонусной программы</div>
+          <div style="font-size:11px;color:var(--text-muted);">Полное описание условий и привилегий</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <!-- Bonus History -->
+    <div class="section">
+      <div class="section-title" style="font-size:17px">История начислений</div>
+      <div class="card" id="bonus-history-list" style="margin-bottom:16px;padding:0 18px;">
+        <div class="bonus-history-item">
+          <div class="bonus-icon birthday">🎂</div>
+          <div class="bonus-hist-info">
+            <div class="bonus-hist-title">День рождения</div>
+            <div class="bonus-hist-date">15.01.2025</div>
+          </div>
+          <div class="bonus-hist-amount positive">+500</div>
+        </div>
+        <div class="bonus-history-item">
+          <div class="bonus-icon positive">💍</div>
+          <div class="bonus-hist-info">
+            <div class="bonus-hist-title">Кольцо с бриллиантом</div>
+            <div class="bonus-hist-date">10.01.2025</div>
+          </div>
+          <div class="bonus-hist-amount positive">+2125</div>
+        </div>
+        <div class="bonus-history-item">
+          <div class="bonus-icon negative">🛍</div>
+          <div class="bonus-hist-info">
+            <div class="bonus-hist-title">Списание за ремонт</div>
+            <div class="bonus-hist-date">15.01.2025</div>
+          </div>
+          <div class="bonus-hist-amount negative">−600</div>
+        </div>
+        <div class="bonus-history-item">
+          <div class="bonus-icon positive">⭐</div>
+          <div class="bonus-hist-info">
+            <div class="bonus-hist-title">Акция «Двойные бонусы»</div>
+            <div class="bonus-hist-date">20.12.2024</div>
+          </div>
+          <div class="bonus-hist-amount positive">+48</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CHAT ============ -->
+  <div class="screen" id="chat">
+    <div class="screen-header" style="padding-bottom:12px;">
+      <div>
+        <div class="screen-title">Мастерская</div>
+        <div class="screen-subtitle" style="display:flex;align-items:center;gap:6px;">
+          <div class="notif-dot"></div>Онлайн · отвечает быстро
+        </div>
+      </div>
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--gold-light),var(--gold));border-radius:12px;display:flex;align-items:center;justify-content:center;padding:8px;">
+        <img src="https://static.tildacdn.com/tild6461-3565-4365-b366-343964653965/svg_1781008987015.svg" style="width:100%;height:100%;object-fit:contain;">
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg bot">
+        <div class="msg-avatar">A</div>
+        <div>
+          <div class="msg-bubble" id="chat-welcome-msg">Здравствуйте! Напишите ваш вопрос — мастер ответит в ближайшее время. 💍</div>
+          <div class="msg-time">Сейчас</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chat-input" placeholder="Написать мастерской..." rows="1" oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ PROFILE ============ -->
+  <div class="screen" id="profile">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profile-avatar-letter">Е</div>
+      <div class="profile-name" id="profile-name-display">Елена Соколова</div>
+      <div class="profile-phone" id="profile-phone-display">+7 (916) 234-56-78</div>
+      <div class="profile-birthday" id="profile-bday-display">🎂 День рождения: 15 января</div>
+      <button class="btn btn-gold" style="margin-top:14px;font-size:13px;padding:10px 24px;" onclick="openSettings()">
+        ✏️ Редактировать профиль
+      </button>
+    </div>
+
+    <div style="padding:8px 0;">
+      <div class="menu-item" onclick="nav('orders')">
+        <div class="menu-item-icon">📋</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Мои заказы</div>
+          <div class="menu-item-sub" id="orders-count-label">4 заказа в истории</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div class="menu-item" onclick="nav('bonuses')">
+        <div class="menu-item-icon">⭐</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Бонусная программа</div>
+          <div class="menu-item-sub">1 248 бонусов · Уровень Золото</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div class="menu-item" onclick="nav('pickup')">
+        <div class="menu-item-icon">📦</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Получить заказ</div>
+          <div class="menu-item-sub">QR-код и 4-значный код</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div class="menu-item" onclick="toggleNotifications()">
+        <div class="menu-item-icon">🔔</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Уведомления</div>
+          <div class="menu-item-sub">Статус заказов, акции, д/р</div>
+        </div>
+        <div id="notif-toggle" style="width:40px;height:22px;background:var(--gold);border-radius:11px;position:relative;transition:background 0.2s;">
+          <div id="notif-knob" style="width:18px;height:18px;background:white;border-radius:50%;position:absolute;right:2px;top:2px;transition:right 0.2s;"></div>
+        </div>
+      </div>
+      <div class="menu-item" onclick="showToast('Адрес: ул. Пушкина, 12, пн-сб 10:00–19:00')">
+        <div class="menu-item-icon">📍</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Контакты мастерской</div>
+          <div class="menu-item-sub">ул. Пушкина, 12 · 10:00–19:00</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <!-- Безопасность: PIN -->
+      <div class="menu-item" onclick="openPinChange()">
+        <div class="menu-item-icon">🔐</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title" id="pin-menu-title">Установить PIN-код</div>
+          <div class="menu-item-sub" id="pin-menu-sub">Быстрый вход без SMS</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+
+      <!-- Автовход без авторизации -->
+      <div class="menu-item" onclick="togglePinRequired()">
+        <div class="menu-item-icon">🔓</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Открывать без защиты</div>
+          <div class="menu-item-sub" id="no-pin-sub">Приложение открывается сразу</div>
+        </div>
+        <div id="no-pin-toggle" style="width:40px;height:22px;background:var(--dark-4);border-radius:11px;position:relative;transition:background 0.2s;flex-shrink:0;">
+          <div id="no-pin-knob" style="width:18px;height:18px;background:white;border-radius:50%;position:absolute;left:2px;top:2px;transition:left 0.2s;"></div>
+        </div>
+      </div>
+
+      <!-- Вход по отпечатку -->
+      <div class="menu-item" id="biometric-menu-item" onclick="toggleBiometric()">
+        <div class="menu-item-icon">👆</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Вход по отпечатку пальца</div>
+          <div class="menu-item-sub" id="biometric-sub">Использовать Touch ID / Face ID</div>
+        </div>
+        <div id="biometric-toggle" style="width:40px;height:22px;background:var(--dark-4);border-radius:11px;position:relative;transition:background 0.2s;flex-shrink:0;">
+          <div id="biometric-knob" style="width:18px;height:18px;background:white;border-radius:50%;position:absolute;left:2px;top:2px;transition:left 0.2s;"></div>
+        </div>
+      </div>
+      <div class="menu-item" onclick="nav('docs')">
+        <div class="menu-item-icon">📄</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Документы и соглашения</div>
+          <div class="menu-item-sub">Правовая документация приложения</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div class="menu-item" onclick="nav('chat')">
+        <div class="menu-item-icon">💬</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title">Чат с мастерской</div>
+          <div class="menu-item-sub">Задать вопрос мастеру</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div class="menu-item" onclick="logout()" style="color:var(--danger);">
+        <div class="menu-item-icon" style="background:rgba(224,82,82,0.1);">🚪</div>
+        <div class="menu-item-info">
+          <div class="menu-item-title" style="color:var(--danger);">Выйти из аккаунта</div>
+          <div class="menu-item-sub">Сессия будет завершена</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:20px;font-size:12px;color:var(--text-dim);">
+      UVYANTRA Ювелирная мастерская · версия 1.0.0
+    </div>
+  </div>
+
+  <!-- ============ DOCS SCREEN ============ -->
+  <div class="screen" id="docs">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">Документы</div>
+        <div class="screen-subtitle">Правовая документация</div>
+      </div>
+    </div>
+
+    <!-- Docs list -->
+    <div style="padding:0 20px;">
+
+      <!-- Пользовательское соглашение -->
+      <div class="doc-card" onclick="openDoc('terms')">
+        <div class="doc-icon">📋</div>
+        <div class="doc-info">
+          <div class="doc-title">Пользовательское соглашение</div>
+          <div class="doc-sub">Условия использования приложения</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+
+      <!-- Политика конфиденциальности -->
+      <div class="doc-card" onclick="openDoc('privacy')">
+        <div class="doc-icon">🔒</div>
+        <div class="doc-info">
+          <div class="doc-title">Политика конфиденциальности</div>
+          <div class="doc-sub">152-ФЗ «О персональных данных»</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+
+      <!-- Согласие на обработку ПД -->
+      <div class="doc-card" onclick="openDoc('consent')">
+        <div class="doc-icon">✅</div>
+        <div class="doc-info">
+          <div class="doc-title">Согласие на обработку данных</div>
+          <div class="doc-sub">Персональные данные · 152-ФЗ</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="consent-status" style="font-size:10px;font-weight:600;color:#4CAF84;background:rgba(76,175,132,0.12);padding:2px 8px;border-radius:10px;">Принято</span>
+          <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Правила бонусной программы -->
+      <div class="doc-card" onclick="openDoc('bonus')">
+        <div class="doc-icon">⭐</div>
+        <div class="doc-info">
+          <div class="doc-title">Правила бонусной программы</div>
+          <div class="doc-sub">Условия начисления и списания бонусов</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+
+      <!-- Оферта -->
+      <div class="doc-card" onclick="openDoc('offer')">
+        <div class="doc-icon">📝</div>
+        <div class="doc-info">
+          <div class="doc-title">Публичная оферта</div>
+          <div class="doc-sub">Договор на оказание ювелирных услуг</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+
+      <!-- Реквизиты -->
+      <div class="doc-card" onclick="openDoc('requisites')">
+        <div class="doc-icon">🏢</div>
+        <div class="doc-info">
+          <div class="doc-title">Реквизиты организации</div>
+          <div class="doc-sub">ООО "ЮВИЯНТРА" · ИНН/КПП</div>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;padding:20px;font-size:11px;color:var(--text-dim);line-height:1.6;">
+      Используя приложение, вы соглашаетесь<br>с Пользовательским соглашением и<br>Политикой конфиденциальности
+    </div>
+  </div>
+
+  <!-- ============ DOC VIEWER MODAL ============ -->
+  <div class="modal-overlay" id="doc-modal" onclick="closeDocModal(event)">
+    <div class="modal" style="max-height:92vh;">
+      <div class="modal-handle"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="modal-title" id="doc-modal-title" style="margin-bottom:0;font-size:20px;">—</div>
+        <button onclick="closeDocModal()" style="background:var(--dark-3);border:none;color:var(--text-muted);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+      </div>
+      <div id="doc-modal-body" style="font-size:12px;color:var(--text-muted);line-height:1.8;"></div>
+      <button class="btn btn-gold btn-full" style="margin-top:20px;" onclick="closeDocModal()">Понятно</button>
+    </div>
+  </div>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-home" onclick="nav('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+      <span>Главная</span>
+    </button>
+    <button class="nav-btn" id="nav-orders" onclick="nav('orders')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      <span>Заказы</span>
+    </button>
+    <button class="nav-btn" id="nav-pickup" onclick="nav('pickup')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3h3M14 21h3M17 18v3"/></svg>
+      <span>QR-код</span>
+    </button>
+    <button class="nav-btn" id="nav-bonuses" onclick="nav('bonuses')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span>Бонусы</span>
+    </button>
+    <button class="nav-btn" id="nav-profile" onclick="nav('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Профиль</span>
+    </button>
+  </nav>
+
+  <!-- ============ ORDER DETAIL MODAL ============ -->
+  <div class="modal-overlay" id="order-modal" onclick="closeModal(event)">
+    <div class="modal" id="modal-content">
+      <div class="modal-handle"></div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============ RECEIPT MODAL ============ -->
+  <div class="modal-overlay" id="receipt-modal" onclick="closeReceiptModal(event)">
+    <div class="modal" style="max-height:95vh;padding:20px 16px 32px;">
+      <div class="modal-handle"></div>
+
+      <!-- Шапка квитанции -->
+      <div style="font-size:9px;color:var(--text-muted);text-align:center;line-height:1.5;margin-bottom:12px;border-bottom:1px solid rgba(201,168,76,0.15);padding-bottom:10px;">
+        ООО "ЮВИЯНТРА", ИНН/КПП: 5406837310/540601001<br>
+        г. Новосибирск, ул. Максима Горького д. 54 офис 315<br>
+        Тел.: +7 953 800 00 76 · www.uvyantra.ru
+      </div>
+
+      <!-- Логотип + заголовок -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#E5C97E,#C9A84C);border-radius:8px;display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0;">
+            <img src="https://static.tildacdn.com/tild6461-3565-4365-b366-343964653965/svg_1781008987015.svg" style="width:100%;height:100%;object-fit:contain;">
+          </div>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:16px;letter-spacing:0.1em;color:var(--text);">UVYANTRA</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:700;color:var(--gold-light);" id="receipt-title-num">КВИТАНЦИЯ: №AUR-2024-089</div>
+          <div style="font-size:10px;color:var(--text-muted);">Форма БО-10ДМ</div>
+        </div>
+      </div>
+
+      <!-- Данные клиента + коды -->
+      <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:12px;">
+        <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.1);border-radius:8px;padding:10px;">
+          <div class="r-row"><span class="r-lbl">Заказчик:</span><span class="r-val" id="receipt-client">—</span></div>
+          <div class="r-row"><span class="r-lbl">Телефон:</span><span class="r-val" id="receipt-phone">—</span></div>
+          <div class="r-row"><span class="r-lbl">Мастер:</span><span class="r-val" id="receipt-master">—</span></div>
+        </div>
+        <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.1);border-radius:8px;padding:10px;min-width:130px;">
+          <div class="r-row"><span class="r-lbl">Подразделение:</span><span class="r-val">0790028</span></div>
+          <div class="r-row"><span class="r-lbl">Код услуги:</span><span class="r-val">013449</span></div>
+          <div class="r-row"><span class="r-lbl">Дата приёма:</span><span class="r-val" id="receipt-date-in">—</span></div>
+          <div class="r-row"><span class="r-lbl">Дата выдачи:</span><span class="r-val" id="receipt-date-out">—</span></div>
+        </div>
+      </div>
+
+      <!-- Материал -->
+      <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Материал и изделие</div>
+        <div class="r-row"><span class="r-lbl">Наименование:</span><span class="r-val" id="receipt-material">—</span></div>
+        <div class="r-row"><span class="r-lbl">Проба:</span><span class="r-val" id="receipt-proba">—</span></div>
+        <div class="r-row"><span class="r-lbl">Вес изделия:</span><span class="r-val" id="receipt-weight">—</span></div>
+        <div class="r-row"><span class="r-lbl">Описание:</span><span class="r-val" id="receipt-desc">—</span></div>
+      </div>
+
+      <!-- Услуги -->
+      <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.1);border-radius:8px;overflow:hidden;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:0;border-bottom:1px solid rgba(201,168,76,0.12);">
+          <div style="font-size:10px;font-weight:600;color:var(--text-muted);padding:8px 10px;text-transform:uppercase;">Наименование услуги</div>
+          <div style="font-size:10px;font-weight:600;color:var(--text-muted);padding:8px 10px;text-align:right;text-transform:uppercase;">Кол.</div>
+          <div style="font-size:10px;font-weight:600;color:var(--text-muted);padding:8px 10px;text-align:right;text-transform:uppercase;">Стоимость</div>
+        </div>
+        <div id="receipt-services-list"></div>
+        <div style="border-top:1px solid rgba(201,168,76,0.12);padding:8px 10px;">
+          <div class="r-row" style="justify-content:flex-end;gap:20px;">
+            <span style="font-size:11px;color:var(--text-muted);">Итого скидка:</span>
+            <span style="font-size:11px;color:var(--text);">0,00 ₽</span>
+          </div>
+          <div class="r-row" style="justify-content:flex-end;gap:20px;">
+            <span style="font-size:11px;color:var(--text-muted);">Предоплата:</span>
+            <span style="font-size:13px;font-weight:600;color:var(--gold-light);" id="receipt-prepay">—</span>
+          </div>
+          <div class="r-row" style="justify-content:flex-end;gap:20px;margin-top:4px;padding-top:6px;border-top:1px solid rgba(201,168,76,0.1);">
+            <span style="font-size:11px;font-weight:600;color:var(--text);">ИТОГО с НДС 20%:</span>
+            <span style="font-size:15px;font-weight:700;color:var(--gold-light);" id="receipt-total">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Сумма прописью + бонусы -->
+      <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text-muted);">Сумма прописью:</div>
+        <div style="font-size:12px;color:var(--text);margin-top:3px;" id="receipt-sum-words">—</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(201,168,76,0.08);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--text-muted);">Начислено бонусов:</span>
+          <span style="font-size:13px;font-weight:600;color:#4CAF84;" id="receipt-bonus">+0 ₽</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+          <span style="font-size:11px;color:var(--text-muted);">Гарантия:</span>
+          <span style="font-size:11px;color:var(--info);" id="receipt-guarantee">—</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-gold" style="flex:1;" onclick="closeReceiptModal(); showToast('Квитанция сохранена')">💾 Сохранить</button>
+        <button class="btn btn-ghost" style="flex:1;" onclick="closeReceiptModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============ SETTINGS MODAL ============ -->
+  <div class="modal-overlay" id="settings-modal" onclick="closeSettingsModal(event)">
+    <div class="modal" style="max-height:92vh;">
+      <div class="modal-handle"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div class="modal-title" style="margin-bottom:0;">Настройки профиля</div>
+        <button onclick="closeSettingsModal()" style="background:var(--dark-3);border:none;color:var(--text-muted);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+      </div>
+
+      <!-- Avatar section -->
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:24px;">
+        <div id="settings-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold-light),var(--gold));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--dark);border:3px solid rgba(201,168,76,0.3);margin-bottom:10px;">Е</div>
+        <div style="font-size:12px;color:var(--text-muted);">Аватар формируется из имени</div>
+      </div>
+
+      <!-- Fields -->
+      <div class="settings-field-group">
+        <div class="settings-section-label">Личные данные</div>
+
+        <div class="settings-field">
+          <label class="settings-label">Имя</label>
+          <input class="settings-input" id="s-firstname" type="text" placeholder="Имя">
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Фамилия</label>
+          <input class="settings-input" id="s-lastname" type="text" placeholder="Фамилия">
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Отчество</label>
+          <input class="settings-input" id="s-patronymic" type="text" placeholder="Отчество (необязательно)">
+        </div>
+      </div>
+
+      <div class="settings-field-group" style="margin-top:16px;">
+        <div class="settings-section-label">Контакты</div>
+        <div class="settings-field">
+          <label class="settings-label">Телефон</label>
+          <input class="settings-input" id="s-phone" type="tel" placeholder="+7 (___) ___-__-__" oninput="formatPhone(this)">
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Email</label>
+          <input class="settings-input" id="s-email" type="email" placeholder="email@example.com">
+        </div>
+      </div>
+
+      <div class="settings-field-group" style="margin-top:16px;">
+        <div class="settings-section-label">Дополнительно</div>
+        <div class="settings-field">
+          <label class="settings-label">Дата рождения</label>
+          <input class="settings-input" id="s-birthday" type="date">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Получайте бонусы и поздравления в день рождения</div>
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Пол</label>
+          <select class="settings-input" id="s-gender">
+            <option value="">Не указан</option>
+            <option value="female">Женский</option>
+            <option value="male">Мужской</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-field-group" style="margin-top:16px;">
+        <div class="settings-section-label">Уведомления</div>
+        <div class="settings-toggle-row">
+          <div>
+            <div style="font-size:13px;color:var(--text);">Статус заказов</div>
+            <div style="font-size:11px;color:var(--text-muted);">Когда заказ готов или изменился статус</div>
+          </div>
+          <div class="s-toggle" id="t-orders" data-key="notif_orders" onclick="toggleSetting(this)"></div>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <div style="font-size:13px;color:var(--text);">Акции и предложения</div>
+            <div style="font-size:11px;color:var(--text-muted);">Специальные предложения мастерской</div>
+          </div>
+          <div class="s-toggle" id="t-promos" data-key="notif_promos" onclick="toggleSetting(this)"></div>
+        </div>
+        <div class="settings-toggle-row" style="border:none;">
+          <div>
+            <div style="font-size:13px;color:var(--text);">День рождения</div>
+            <div style="font-size:11px;color:var(--text-muted);">Поздравление и начисление бонусов</div>
+          </div>
+          <div class="s-toggle" id="t-bday" data-key="notif_bday" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-gold btn-full" onclick="saveSettings()">💾 Сохранить изменения</button>
+        <button class="btn btn-ghost btn-full" style="font-size:12px;color:var(--danger);" onclick="confirmDeleteData()">🗑 Удалить мои данные</button>
+      </div>
+
+      <!-- Data info block -->
+      <div style="margin-top:20px;background:var(--dark-3);border-radius:var(--radius-sm);padding:14px;border:1px solid rgba(201,168,76,0.08);">
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;">ℹ️ Где хранятся данные</div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.7;">
+          Сейчас данные сохраняются локально на вашем устройстве (localStorage). Они не передаются на сторонние серверы. При очистке браузера данные будут удалены.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PIN CHANGE MODAL ============ -->
+  <div class="modal-overlay" id="pin-change-modal" onclick="closePinChange(event)">
+    <div class="modal" style="text-align:center;">
+      <div class="modal-handle"></div>
+      <div style="font-size:36px;margin-bottom:10px;">🔐</div>
+      <div class="modal-title" style="text-align:center;" id="pin-change-title">Установить PIN-код</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:24px;" id="pin-change-sub">Введите новый 4-значный PIN</div>
+      <div class="otp-inputs" style="justify-content:center;">
+        <input class="otp-digit" maxlength="1" type="number" id="pinchg0" oninput="pinInput(this,0,'change')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinchg1" oninput="pinInput(this,1,'change')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinchg2" oninput="pinInput(this,2,'change')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinchg3" oninput="pinInput(this,3,'change')">
+      </div>
+      <div style="font-size:11px;color:var(--danger);margin:8px 0;min-height:16px;" id="pin-change-error"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-ghost" style="flex:1;" onclick="closePinChange()">Отмена</button>
+        <button class="btn btn-danger btn-sm" style="font-size:11px;" onclick="removePin()">Удалить PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ AUTH SCREEN ============ -->
+  <div id="auth-screen">
+    <div class="auth-logo" style="width:72px;height:72px;background:linear-gradient(135deg,#E5C97E,#C9A84C);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;padding:14px;">
+      <img src="https://static.tildacdn.com/tild6461-3565-4365-b366-343964653965/svg_1781008987015.svg"
+           alt="UVYANTRA" style="width:100%;height:100%;object-fit:contain;">
+    </div>
+    <div class="auth-brand">UVYANTRA</div>
+    <div class="auth-tagline" style="margin-bottom:40px;">ЮВЕЛИРНАЯ МАСТЕРСКАЯ</div>
+
+    <!-- Шаг 1: номер телефона -->
+    <div class="auth-step" id="auth-step-phone">
+      <label class="auth-label">Ваш номер телефона</label>
+      <input class="auth-input" id="auth-phone-input" type="tel"
+             placeholder="+7 (___) ___-__-__"
+             oninput="formatPhone(this)" onfocus="initPhoneMask(this)" maxlength="18">
+
+      <!-- Согласия — скрывается для повторных пользователей -->
+      <div id="consent-block" style="margin-bottom:16px;display:flex;flex-direction:column;gap:10px;">
+        <label class="consent-row" id="consent-row-1">
+          <input type="checkbox" id="consent-pd" onchange="checkConsentReady()">
+          <span class="consent-text">
+            Даю согласие на
+            <span class="consent-link" onclick="event.preventDefault();openDoc('consent')">обработку персональных данных</span>
+            в соответствии с 152-ФЗ
+          </span>
+        </label>
+        <label class="consent-row" id="consent-row-2">
+          <input type="checkbox" id="consent-terms" onchange="checkConsentReady()">
+          <span class="consent-text">
+            Принимаю
+            <span class="consent-link" onclick="event.preventDefault();openDoc('terms')">пользовательское соглашение</span>
+            и
+            <span class="consent-link" onclick="event.preventDefault();openDoc('privacy')">политику конфиденциальности</span>
+          </span>
+        </label>
+        <label class="consent-row">
+          <input type="checkbox" id="consent-bonus">
+          <span class="consent-text">
+            Согласен с
+            <span class="consent-link" onclick="event.preventDefault();openDoc('bonus')">правилами бонусной программы</span>
+            <span style="color:var(--text-dim);font-size:10px;"> (необязательно)</span>
+          </span>
+        </label>
+      </div>
+
+      <button class="btn btn-gold btn-full" id="auth-sms-btn" onclick="authStepRequest()" disabled
+        style="opacity:0.45;transition:opacity 0.2s;">
+        Получить код и зарегистрироваться
+      </button>
+      <div class="auth-hint" style="margin-top:10px;">
+        На ваш номер придёт код подтверждения
+      </div>
+    </div>
+
+    <!-- Шаг 2: OTP код -->
+    <div class="auth-step" id="auth-step-otp" style="display:none">
+      <label class="auth-label" style="text-align:center;display:block;">Введите код из SMS</label>
+      <div class="otp-inputs">
+        <input class="otp-digit" maxlength="1" type="number" id="otp0" oninput="otpInput(this,0)">
+        <input class="otp-digit" maxlength="1" type="number" id="otp1" oninput="otpInput(this,1)">
+        <input class="otp-digit" maxlength="1" type="number" id="otp2" oninput="otpInput(this,2)">
+        <input class="otp-digit" maxlength="1" type="number" id="otp3" oninput="otpInput(this,3)">
+      </div>
+      <button class="btn btn-gold btn-full" id="auth-verify-btn" onclick="authStepVerify()">
+        Войти
+      </button>
+      <div class="auth-hint" id="auth-otp-hint">Код отправлен на <span id="auth-phone-display"></span></div>
+      <button class="resend-btn" id="resend-btn" onclick="authResend()" disabled>
+        Отправить повторно (<span id="resend-countdown">60</span>с)
+      </button>
+      <button class="auth-back" onclick="authBack()">← Изменить номер</button>
+    </div>
+
+    <!-- Шаг 3: установка PIN -->
+    <div class="auth-step" id="auth-step-set-pin" style="display:none">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:36px;margin-bottom:8px;">🔐</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text);margin-bottom:6px;">Установите PIN-код</div>
+        <div style="font-size:12px;color:var(--text-muted);">Для быстрого входа в следующий раз</div>
+      </div>
+      <label class="auth-label" style="text-align:center;display:block;">Введите 4 цифры</label>
+      <div class="otp-inputs">
+        <input class="otp-digit" maxlength="1" type="number" id="pin0" oninput="pinInput(this,0,'set-pin')">
+        <input class="otp-digit" maxlength="1" type="number" id="pin1" oninput="pinInput(this,1,'set-pin')">
+        <input class="otp-digit" maxlength="1" type="number" id="pin2" oninput="pinInput(this,2,'set-pin')">
+        <input class="otp-digit" maxlength="1" type="number" id="pin3" oninput="pinInput(this,3,'set-pin')">
+      </div>
+      <div class="auth-hint">Запомните PIN — он заменит SMS при следующем входе</div>
+      <button class="auth-back" onclick="skipPinSetup()">Пропустить</button>
+    </div>
+
+    <!-- Шаг 4: подтверждение PIN -->
+    <div class="auth-step" id="auth-step-confirm-pin" style="display:none">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:36px;margin-bottom:8px;">🔐</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text);margin-bottom:6px;">Повторите PIN-код</div>
+        <div style="font-size:12px;color:var(--text-muted);">Подтвердите для сохранения</div>
+      </div>
+      <label class="auth-label" style="text-align:center;display:block;">Введите PIN ещё раз</label>
+      <div class="otp-inputs">
+        <input class="otp-digit" maxlength="1" type="number" id="pinc0" oninput="pinInput(this,0,'confirm-pin')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinc1" oninput="pinInput(this,1,'confirm-pin')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinc2" oninput="pinInput(this,2,'confirm-pin')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinc3" oninput="pinInput(this,3,'confirm-pin')">
+      </div>
+      <div class="auth-hint" id="pin-confirm-hint" style="color:var(--text-dim);">Введите PIN повторно</div>
+      <button class="auth-back" onclick="showPinStep('set-pin')">← Назад</button>
+    </div>
+
+    <!-- Шаг 5: вход по PIN (для повторных пользователей) -->
+    <div class="auth-step" id="auth-step-pin-login" style="display:none">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:36px;margin-bottom:8px;">🔐</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text);margin-bottom:6px;">Введите PIN-код</div>
+        <div style="font-size:12px;color:var(--text-muted);" id="pin-login-sub">Введите PIN для входа</div>
+      </div>
+      <div class="otp-inputs">
+        <input class="otp-digit" maxlength="1" type="number" id="pinl0" oninput="pinInput(this,0,'pin-login')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinl1" oninput="pinInput(this,1,'pin-login')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinl2" oninput="pinInput(this,2,'pin-login')">
+        <input class="otp-digit" maxlength="1" type="number" id="pinl3" oninput="pinInput(this,3,'pin-login')">
+      </div>
+      <div class="auth-hint" id="pin-login-hint"></div>
+      <button class="auth-back" onclick="loginWithSmsInstead()">Забыл PIN — войти через SMS</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ================================================================
+// КОНФИГУРАЦИЯ — вставьте URL вашего Apps Script после деплоя
+// ================================================================
+// ================================================================
+// КОНФИГУРАЦИЯ
+// После деплоя замените значения на реальные
+// ================================================================
+const BACKEND_URL = 'http://localhost:3000'; // ← заменить на https://api.uvyantra.ru
+const DEMO_MODE   = BACKEND_URL.includes('localhost');
+const API_URL     = BACKEND_URL;
+
+// Firebase конфигурация — вставьте из Firebase Console
+// Project Settings → General → Your apps → Config
+const FIREBASE_CONFIG = {
+  apiKey:            'ВСТАВЬТЕ_API_KEY',
+  authDomain:        'ВСТАВЬТЕ.firebaseapp.com',
+  projectId:         'ВСТАВЬТЕ_PROJECT_ID',
+  storageBucket:     'ВСТАВЬТЕ.appspot.com',
+  messagingSenderId: 'ВСТАВЬТЕ_SENDER_ID',
+  appId:             'ВСТАВЬТЕ_APP_ID',
+  vapidKey:          'ВСТАВЬТЕ_VAPID_KEY' // Cloud Messaging → Web Push certificates
+};
+const PUSH_ENABLED = !FIREBASE_CONFIG.apiKey.includes('ВСТАВЬТЕ');
+
+// ===== DEMO DATA (используется пока не подключён Google Sheets) =====
+const DEMO_ORDERS = [
+  {
+    orderId: 'AUR-2024-087', title: 'Кольцо с бриллиантом 0.3ct',
+    status: 'progress', price: 42500, masterName: 'Петров С.В.',
+    material: 'Золото 585°, бриллиант', createdAt: '2025-01-10', readyAt: '2025-01-25',
+    guaranteeMonths: 12, guaranteeUntil: '2026-01-25', weight: '4.20',
+    step1date: '2025-01-10', step2date: '2025-01-12', step3date: '', step4date: ''
+  },
+  {
+    orderId: 'AUR-2024-089', title: 'Ремонт цепочки золотой',
+    status: 'ready', price: 1200, masterName: 'Иванов А.П.',
+    material: 'Золото 585°', createdAt: '2025-01-13', readyAt: '2025-01-15',
+    guaranteeMonths: 6, guaranteeUntil: '2025-07-15', pickupCode: '7842', weight: '3.98',
+    step1date: '2025-01-13', step2date: '2025-01-13', step3date: '2025-01-15', step4date: '2025-01-15'
+  },
+  {
+    orderId: 'AUR-2023-234', title: 'Гравировка на кулоне',
+    status: 'done', price: 800, masterName: 'Иванов А.П.',
+    material: 'Серебро 925°', createdAt: '2024-12-18', readyAt: '2024-12-20', pickedUpAt: '2024-12-20',
+    guaranteeMonths: 3, guaranteeUntil: '2025-03-20',
+    step1date: '2024-12-18', step2date: '2024-12-19', step3date: '2024-12-20', step4date: '2024-12-20'
+  },
+  {
+    orderId: 'AUR-2023-198', title: 'Чистка и полировка серёг',
+    status: 'done', price: 600, masterName: 'Кузнецова М.А.',
+    material: 'Золото 585°', createdAt: '2024-11-03', readyAt: '2024-11-05', pickedUpAt: '2024-11-05',
+    guaranteeMonths: 0, guaranteeUntil: '',
+    step1date: '2024-11-03', step2date: '2024-11-04', step3date: '2024-11-05', step4date: '2024-11-05'
+  }
+];
+
+const DEMO_BONUSES = [
+  { type: 'birthday', amount: 500, description: 'День рождения', createdAt: '2025-01-15' },
+  { type: 'earn', amount: 2125, description: 'Кольцо с бриллиантом', createdAt: '2025-01-10' },
+  { type: 'spend', amount: -600, description: 'Ремонт цепочки', createdAt: '2025-01-15' },
+  { type: 'promo', amount: 48, description: 'Акция «Двойные бонусы»', createdAt: '2024-12-20' }
+];
+
+const DEMO_PROMOS = [
+  { id:'p001', tag:'🎁 Акция', title:'-20% на гравировку в феврале', validUntil:'2025-02-28' },
+  { id:'p002', tag:'⭐ Бонусы ×2', title:'Двойные бонусы за каждый заказ', validUntil:'2025-02-14' },
+  { id:'p003', tag:'💍 Новинка', title:'Обручальные кольца по эскизу', validUntil:'2099-12-31' }
+];
+
+// ===== APP STATE =====
+let appOrders = [];
+let appBonuses = [];
+let appPromos = [];
+// Legacy alias so order modal still works
+const orders = {};
+
+
+// ================================================================
+// API LAYER — запросы к Node.js Backend
+// ================================================================
+
+function getToken() {
+  try { return localStorage.getItem('uvyantra_token'); } catch { return null; }
+}
+function setToken(t) {
+  try { localStorage.setItem('uvyantra_token', t); } catch {}
+}
+function clearToken() {
+  try { localStorage.removeItem('uvyantra_token'); } catch {}
+}
+
+async function api(method, path, body = null) {
+  const token = getToken();
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'X-Session-Token': token } : {})
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(BACKEND_URL + path, opts);
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'Ошибка сервера');
+  return json.data;
+}
+
+// Авторизация
+async function authRequest(phone) {
+  await fetch(BACKEND_URL + '/auth/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone })
+  });
+}
+async function authVerify(phone, code) {
+  const res = await fetch(BACKEND_URL + '/auth/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, code })
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error);
+  return json;
+}
+
+async function loadFromAPI() {
+  const [client, orders, bonuses, promos] = await Promise.all([
+    api('GET', '/client/me'),
+    api('GET', '/orders'),
+    api('GET', '/bonuses'),
+    api('GET', '/promos')
+  ]);
+  return { client, orders, bonuses, promos };
+}
+
+// Normalize raw Sheets row → app format
+function normalizeOrder(raw) {
+  // Handle both camelCase (demo) and snake_case (PostgreSQL)
+  raw = {
+    orderId:        raw.orderId        || raw.order_number,
+    title:          raw.title,
+    status:         raw.status,
+    price:          raw.price,
+    masterName:     raw.masterName     || raw.master_name,
+    material:       raw.material,
+    createdAt:      raw.createdAt      || raw.created_at,
+    readyAt:        raw.readyAt        || raw.ready_at,
+    guaranteeMonths:raw.guaranteeMonths|| raw.guarantee_months || 0,
+    guaranteeUntil: raw.guaranteeUntil || raw.guarantee_until,
+    pickupCode:     raw.pickupCode     || raw.pickup_code,
+    weight:         raw.weight          || raw.weight_grams || null,
+    step1date: raw.step1date || raw.step_received_at,
+    step2date: raw.step2date || raw.step_progress_at,
+    step3date: raw.step3date || raw.step_done_at,
+    step4date: raw.step4date || raw.step_ready_at,
+  };
+  const statusMap = { progress:'В работе', ready:'Готово', done:'Получено', pending:'Принят' };
+  const stepLabels = ['Принят в работу','В работе','Готово','Получено'];
+
+  const steps = stepLabels.map((label, i) => {
+    const dateKey = 'step' + (i+1) + 'date';
+    const date = raw[dateKey] || '';
+    const isActive = !date && i > 0 && raw['step' + i + 'date'];
+    return { name: label, date: date || '—', done: !!date, active: !!isActive };
+  });
+
+  // Fix active step
+  let lastDone = -1;
+  steps.forEach((s, i) => { if (s.done) lastDone = i; });
+  if (lastDone >= 0 && lastDone < steps.length - 1) {
+    steps[lastDone + 1].active = true;
+    steps[lastDone + 1].done = false;
+  }
+
+  const g = raw.guaranteeMonths > 0 && raw.guaranteeUntil
+    ? raw.guaranteeMonths + ' мес. · до ' + _fmtDate(raw.guaranteeUntil) : null;
+
+  return {
+    orderId:  raw.orderId,
+    title:    raw.title,
+    id:       '№ ' + raw.orderId,
+    status:   raw.status || 'pending',
+    statusText: statusMap[raw.status] || raw.status,
+    price:    _fmtMoney(raw.price),
+    date:     _fmtDate(raw.createdAt),
+    ready:    raw.readyAt ? _fmtDate(raw.readyAt) : '—',
+    master:   raw.masterName || '—',
+    material: raw.material || '—',
+    pickupCode: raw.pickupCode || '',
+    weight: raw.weight || null,
+    steps,
+    guarantee: g
+  };
+}
+
+function _fmtDate(d) {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d + (d.includes('T') ? '' : 'T00:00:00'));
+    return dt.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit' });
+  } catch { return d; }
+}
+
+function _fmtMoney(v) {
+  if (!v) return '—';
+  return Number(v).toLocaleString('ru-RU') + ' ₽';
+}
+
+function normalizeBonusTotal(bonuses) {
+  return bonuses.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+}
+
+function calcBonusLevel(balance) {
+  if (balance >= 1000000) return { key:'vip',      label:'VIP',     pct:15 };
+  if (balance >= 500000)  return { key:'platinum', label:'Платина', pct:10 };
+  if (balance >= 100000)  return { key:'gold',     label:'Золото',  pct:7  };
+  return { key:'silver', label:'Серебро', pct:5 };
+}
+
+// ================================================================
+// DATA LOADER — загружает данные (API или demo)
+// ================================================================
+async function loadAppData() {
+  showLoadingState(true);
+  const user = loadUser();
+  const phone = user.phone;
+
+  try {
+    let client, rawOrders, rawBonuses, rawPromos;
+
+    if (!DEMO_MODE && getToken()) {
+      // Real backend API call
+      ({ client, orders: rawOrders, bonuses: rawBonuses, promos: rawPromos } =
+        await loadFromAPI());
+
+      // Sync profile from server → localStorage
+      if (client) {
+        const merged = {
+          ...user,
+          firstname:  client.first_name  || user.firstname,
+          lastname:   client.last_name   || user.lastname,
+          patronymic: client.patronymic  || user.patronymic,
+          email:      client.email       || user.email,
+          birthday:   client.birthday ? client.birthday.split('T')[0] : user.birthday
+        };
+        saveUser(merged);
+        applyUserToUI(merged);
+      }
+    } else {
+      // Demo mode или не авторизован
+      rawOrders  = DEMO_ORDERS;
+      rawBonuses = DEMO_BONUSES;
+      rawPromos  = DEMO_PROMOS;
+      if (!DEMO_MODE && !getToken()) showAuthScreen();
+    }
+
+    // Normalize & cache
+    appOrders  = (rawOrders  || []).map(normalizeOrder);
+    appBonuses = rawBonuses  || [];
+    appPromos  = rawPromos   || [];
+
+    // Rebuild legacy orders map
+    appOrders.forEach(o => { orders[o.orderId] = o; });
+
+    // Render all sections
+    renderHomeOrders();
+    renderPromos();
+    renderOrdersList();
+    renderBonusSection();
+    renderPickupSelect();
+
+    if (DEMO_MODE) showDemoBanner();
+  } catch(e) {
+    console.error('Load error:', e);
+    // Fallback to demo
+    appOrders  = DEMO_ORDERS.map(normalizeOrder);
+    appBonuses = DEMO_BONUSES;
+    appPromos  = DEMO_PROMOS;
+    appOrders.forEach(o => { orders[o.orderId] = o; });
+    renderHomeOrders(); renderPromos(); renderOrdersList();
+    renderBonusSection(); renderPickupSelect();
+    if (!DEMO_MODE) showToast('⚠️ Нет связи — показаны кешированные данные');
+  }
+
+  showLoadingState(false);
+}
+
+function showLoadingState(on) {
+  document.querySelectorAll('.data-loader').forEach(el => {
+    el.style.display = on ? 'flex' : 'none';
+  });
+}
+
+function showDemoBanner() {
+  const b = document.getElementById('demo-banner');
+  if (b) b.style.display = 'flex';
+}
+
+// ================================================================
+// RENDERERS
+// ================================================================
+function renderHomeOrders() {
+  const active = appOrders.filter(o => o.status === 'progress' || o.status === 'ready').slice(0, 3);
+  const container = document.getElementById('home-orders');
+  if (!container) { setTimeout(renderHomeOrders, 200); return; }
+
+  if (!active.length) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;font-size:13px;color:var(--text-muted);">Нет активных заказов</div>';
+    return;
+  }
+
+  const icons = {
+    progress: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>',
+    ready:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 6L9 17l-5-5"/></svg>'
+  };
+
+  container.innerHTML = active.map(o => `
+    <div class="order-item" onclick="openOrderDetail('${o.orderId}')">
+      <div class="order-icon">${icons[o.status] || icons.progress}</div>
+      <div class="order-info">
+        <div class="order-name">${o.title}</div>
+        <div class="order-meta">
+          <span class="badge ${o.status === 'ready' ? 'badge-ready' : 'badge-progress'}">
+            ${o.status === 'ready' ? '✓ ' : '● '}${o.statusText}
+          </span>
+        </div>
+      </div>
+      <div class="order-date">${o.status === 'ready' ? 'Готов' : 'до ' + o.ready}</div>
+    </div>`).join('');
+}
+
+function renderPromos() {
+  const container = document.getElementById('promo-scroll');
+  if (!container) { setTimeout(renderPromos, 200); return; }
+  if (!appPromos.length) return;
+  container.innerHTML = appPromos.map(p => `
+    <div class="promo-card">
+      <div class="promo-tag">${p.tag || '🎁'}</div>
+      <div class="promo-title">${p.title}</div>
+      <div class="promo-until">До ${_fmtDate(p.validUntil)}</div>
+    </div>`).join('');
+}
+
+function renderOrdersList() {
+  const container = document.getElementById('orders-list');
+  if (!container) return;
+
+  if (!appOrders.length) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;font-size:13px;color:var(--text-muted);">Заказов пока нет</div>';
+    document.getElementById('orders-count-label').textContent = 'Нет заказов';
+    return;
+  }
+
+  document.getElementById('orders-count-label').textContent = appOrders.length + ' ' + _pluralOrder(appOrders.length) + ' в истории';
+
+  const badgeClass = { ready:'badge-ready', progress:'badge-progress', done:'badge-done', pending:'badge-pending' };
+
+  container.innerHTML = appOrders.map(o => {
+    const steps = o.steps || [];
+    const stepsHtml = steps.map(s =>
+      `<div class="timeline-step ${s.done ? 'done' : s.active ? 'active' : ''}"></div>`
+    ).join('');
+    const g = o.guarantee ? `<div style="margin-top:8px;"><span class="guarantee-badge">🛡 Гарантия ${o.guarantee}</span></div>` : '';
+    return `
+    <div class="order-full" onclick="openOrderDetail('${o.orderId}')" data-status="${o.status}">
+      <div class="order-full-header">
+        <div>
+          <div class="order-full-title">${o.title}</div>
+          <div class="order-full-id">${o.id}</div>
+        </div>
+        <span class="badge ${badgeClass[o.status] || 'badge-done'}">${o.statusText}</span>
+      </div>
+      ${g}
+      <div class="order-timeline">${stepsHtml}</div>
+      <div class="order-footer">
+        <div class="order-price">${o.price}</div>
+        <div class="order-date-small">${o.date}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBonusSection() {
+  const total = normalizeBonusTotal(appBonuses);
+  const level = calcBonusLevel(total);
+  const nextLevel = { silver: { label:'Золото', need:100000 }, gold: { label:'Платина', need:500000 }, platinum: { label:'VIP', need:1000000 }, vip: null }[level.key];
+
+  // Update bonus card on home
+  const amountEl = document.getElementById('bonus-amount-home');
+  if (amountEl) amountEl.textContent = total.toLocaleString('ru-RU');
+
+  const levelEl = document.getElementById('bonus-level-home');
+  if (levelEl) levelEl.textContent = 'Уровень «' + level.label + '»';
+
+  // Update bonus screen
+  const balEl = document.getElementById('bonus-amount-screen');
+  if (balEl) balEl.textContent = total.toLocaleString('ru-RU');
+
+  const lvlEl = document.getElementById('bonus-level-screen');
+  if (lvlEl) lvlEl.textContent = 'Уровень «' + level.label + '»';
+
+  if (nextLevel) {
+    const pct = Math.min(100, Math.round((total / nextLevel.need) * 100));
+    document.querySelectorAll('.progress-fill').forEach(el => el.style.width = pct + '%');
+    document.querySelectorAll('.progress-to-label').forEach(el => el.textContent = 'До «' + nextLevel.label + '»');
+    document.querySelectorAll('.progress-remain').forEach(el =>
+      el.textContent = (nextLevel.need - total).toLocaleString('ru-RU') + ' ₽');
+  }
+
+  // Render bonus history
+  const hist = document.getElementById('bonus-history-list');
+  if (hist && appBonuses.length) {
+    const icons = { birthday:'🎂', earn:'💍', spend:'🛍', promo:'⭐' };
+    hist.innerHTML = appBonuses.slice(0, 20).map(b => {
+      const pos = Number(b.amount) >= 0;
+      return `
+      <div class="bonus-history-item">
+        <div class="bonus-icon ${pos ? 'positive' : 'negative'}">${icons[b.type] || '💰'}</div>
+        <div class="bonus-hist-info">
+          <div class="bonus-hist-title">${b.description}</div>
+          <div class="bonus-hist-date">${_fmtDate(b.createdAt)}</div>
+        </div>
+        <div class="bonus-hist-amount ${pos ? 'positive' : 'negative'}">${pos ? '+' : ''}${Number(b.amount).toLocaleString('ru-RU')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Earned / spent summary
+  const earned = appBonuses.filter(b => Number(b.amount) > 0).reduce((s,b) => s + Number(b.amount), 0);
+  const spent  = Math.abs(appBonuses.filter(b => Number(b.amount) < 0).reduce((s,b) => s + Number(b.amount), 0));
+  const earnEl = document.getElementById('bonus-earned');
+  const spentEl = document.getElementById('bonus-spent');
+  if (earnEl) earnEl.textContent = '+' + earned.toLocaleString('ru-RU') + ' ₽';
+  if (spentEl) spentEl.textContent = '−' + spent.toLocaleString('ru-RU') + ' ₽';
+
+  // Highlight current level card
+  document.querySelectorAll('.level-card').forEach(card => {
+    card.classList.toggle('current', card.dataset.level === level.key);
+    const badge = card.querySelector('.level-current-badge');
+    if (badge) badge.style.display = card.dataset.level === level.key ? 'block' : 'none';
+  });
+}
+
+function renderPickupSelect() {
+  const sel = document.getElementById('pickup-select');
+  if (!sel) return;
+  const ready = appOrders.filter(o => o.status === 'ready');
+  if (!ready.length) {
+    sel.innerHTML = '<option value="">Нет заказов к выдаче</option>';
+    updateQR('');
+    return;
+  }
+  sel.innerHTML = ready.map(o =>
+    `<option value="${o.orderId}" data-code="${o.pickupCode}">${o.id} — ${o.title}</option>`
+  ).join('');
+  updateQRFromSelect();
+}
+
+function updateQRFromSelect() {
+  const sel = document.getElementById('pickup-select');
+  if (!sel || !sel.options[sel.selectedIndex]) return;
+  const code = sel.options[sel.selectedIndex].dataset.code || '0000';
+  document.getElementById('pickup-code').textContent = code;
+  generateQR(code);
+}
+
+function _pluralOrder(n) {
+  if (n % 100 >= 11 && n % 100 <= 19) return 'заказов';
+  const r = n % 10;
+  if (r === 1) return 'заказ';
+  if (r >= 2 && r <= 4) return 'заказа';
+  return 'заказов';
+}
+
+// ===== NAV =====
+let currentScreen = 'home';
+
+// Screens that have a nav button
+const NAV_SCREENS = ['home','orders','pickup','bonuses','profile'];
+
+function nav(screen) {
+  const curEl = document.getElementById(currentScreen);
+  if (curEl) curEl.classList.remove('active');
+  const curNav = document.getElementById('nav-' + currentScreen);
+  if (curNav) curNav.classList.remove('active');
+
+  currentScreen = screen;
+
+  const newEl = document.getElementById(screen);
+  if (newEl) newEl.classList.add('active');
+
+  const newNav = document.getElementById('nav-' + screen);
+  if (newNav) newNav.classList.add('active');
+
+  if (screen === 'chat') {
+    const profileNav = document.getElementById('nav-profile');
+    if (profileNav) profileNav.classList.add('active');
+    setTimeout(initChat, 100);
+  }
+
+  if (screen !== 'chat' && newEl) newEl.scrollTop = 0;
+}
+
+// ===== GREETING =====
+function setGreeting() {
+  const d = new Date();
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const days = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+  document.getElementById('today-date').textContent = d.getDate() + ' ' + months[d.getMonth()] + ', ' + days[d.getDay()];
+}
+setGreeting();
+// Bootstrap: load all data on startup — wrapped in DOMContentLoaded for Tilda compatibility
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadAppData);
+} else {
+  loadAppData(); // DOM already ready
+}
+
+// ===== ORDER MODAL =====
+function openOrderDetail(id) {
+  const o = orders[id];
+  if (!o) return;
+  const badgeClass = { progress: 'badge-progress', ready: 'badge-ready', done: 'badge-done' }[o.status] || 'badge-done';
+
+  const stepsHtml = o.steps.map(s => `
+    <div class="status-step">
+      <div class="status-dot ${s.done ? 'done' : s.active ? 'active' : ''}">
+        ${s.done ? '✓' : s.active ? '●' : ''}
+      </div>
+      <div class="status-info">
+        <div class="status-name">${s.name}</div>
+        <div class="status-date">${s.date}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-title">${o.title}</div>
+    <div class="modal-id">${o.id}</div>
+    <span class="badge ${badgeClass}" style="margin-bottom:16px;display:inline-flex;">${o.statusText}</span>
+    ${o.guarantee ? `<div style="margin-bottom:16px;"><span class="guarantee-badge">🛡 Гарантия ${o.guarantee}</span></div>` : ''}
+    <div class="divider"></div>
+    <div class="detail-row"><span class="detail-label">Стоимость</span><span class="detail-value">${o.price}</span></div>
+    <div class="detail-row"><span class="detail-label">Принят</span><span class="detail-value">${o.date}</span></div>
+    <div class="detail-row"><span class="detail-label">Срок выдачи</span><span class="detail-value">${o.ready}</span></div>
+    <div class="detail-row"><span class="detail-label">Мастер</span><span class="detail-value">${o.master}</span></div>
+    <div class="detail-row"><span class="detail-label">Материал</span><span class="detail-value">${o.material}</span></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;font-weight:500;">Статус выполнения</div>
+    <div class="status-timeline">${stepsHtml}</div>
+    ${o.status === 'ready' ? `
+    <button class="btn btn-gold btn-full" style="margin-top:8px;" onclick="nav('pickup');closeModalDirect()">
+      📦 Получить заказ
+    </button>
+    <button class="btn btn-outline btn-full" style="margin-top:10px;" onclick="closeModalDirect();showReceiptModal()">
+      📄 Электронная квитанция
+    </button>` : ''}
+    ${o.status === 'done' ? `<button class="btn btn-outline btn-full" style="margin-top:8px;" onclick="closeModalDirect();showReceiptModal()">📄 Квитанция</button>` : ''}
+  `;
+  document.getElementById('order-modal').classList.add('active');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('order-modal')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('order-modal').classList.remove('active');
+}
+
+// ===== RECEIPT =====
+function showReceiptModal(orderId) {
+  // Find the order — use passed id or last opened
+  const o = orderId ? orders[orderId] : (appOrders.find(x => x.status === 'ready') || appOrders[0]);
+
+  if (o) {
+    // Header
+    document.getElementById('receipt-title-num').textContent = 'КВИТАНЦИЯ: №' + o.orderId;
+
+    // Client data from profile
+    const u = loadUser();
+    document.getElementById('receipt-client').textContent = getFullName(u) || '—';
+    document.getElementById('receipt-phone').textContent  = u.phone || '—';
+    document.getElementById('receipt-master').textContent = o.master || '—';
+    document.getElementById('receipt-date-in').textContent  = o.date  || '—';
+    document.getElementById('receipt-date-out').textContent = o.ready || o.date || '—';
+
+    // Material
+    const mat = o.material || '—';
+    const proba = mat.match(/\d{3}°?/)?.[0] || '—';
+    document.getElementById('receipt-material').textContent = mat;
+    document.getElementById('receipt-proba').textContent    = proba;
+    document.getElementById('receipt-weight').textContent   = o.weight ? o.weight + ' г' : '—';
+    document.getElementById('receipt-desc').textContent     = o.title || '—';
+
+    // Services list — show title as single service
+    const priceNum = parseFloat((o.price || '0').replace(/\s/g,'').replace('₽','').replace(',','')) || 0;
+    document.getElementById('receipt-services-list').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr auto auto;padding:8px 10px;border-bottom:1px solid rgba(201,168,76,0.07);">
+        <div style="font-size:12px;color:var(--text);">${o.title}</div>
+        <div style="font-size:12px;color:var(--text);text-align:right;padding:0 10px;">1</div>
+        <div style="font-size:12px;color:var(--text);text-align:right;">${o.price}</div>
+      </div>`;
+
+    document.getElementById('receipt-prepay').textContent = o.price;
+    document.getElementById('receipt-total').textContent  = o.price;
+    document.getElementById('receipt-sum-words').textContent = numToWords(priceNum);
+
+    // Bonus earned (5% default)
+    const u2 = loadUser();
+    const level = calcBonusLevel(normalizeBonusTotal(appBonuses));
+    const bonusEarned = Math.round(priceNum * level.pct / 100);
+    document.getElementById('receipt-bonus').textContent = '+' + bonusEarned.toLocaleString('ru-RU') + ' ₽ (' + level.pct + '%)';
+
+    // Guarantee
+    document.getElementById('receipt-guarantee').textContent = o.guarantee
+      ? '🛡 ' + o.guarantee
+      : 'Не предусмотрена';
+  }
+
+  document.getElementById('receipt-modal').classList.add('active');
+}
+
+// Простая функция числа прописью (только тысячи)
+function numToWords(n) {
+  if (!n || isNaN(n)) return '—';
+  const units   = ['','один','два','три','четыре','пять','шесть','семь','восемь','девять'];
+  const teens   = ['десять','одиннадцать','двенадцать','тринадцать','четырнадцать','пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать'];
+  const tens    = ['','','двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'];
+  const hundreds= ['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
+  const thousands= ['','одна тысяча','две тысячи','три тысячи','четыре тысячи','пять тысяч','шесть тысяч','семь тысяч','восемь тысяч','девять тысяч'];
+
+  n = Math.floor(n);
+  if (n === 0) return 'ноль рублей 00 копеек';
+
+  let result = '';
+  const th = Math.floor(n / 1000);
+  const rem = n % 1000;
+
+  if (th > 0 && th < 10) result += thousands[th] + ' ';
+  else if (th >= 10) result += th + ' тысяч ';
+
+  const h = Math.floor(rem / 100);
+  const t = Math.floor((rem % 100) / 10);
+  const u = rem % 10;
+
+  if (h) result += hundreds[h] + ' ';
+  if (t === 1) result += teens[u] + ' ';
+  else { if (t) result += tens[t] + ' '; if (u) result += units[u] + ' '; }
+
+  return (result.trim() || 'ноль') + ' рублей 00 копеек';
+}
+function closeReceiptModal(e) {
+  if (!e || e.target === document.getElementById('receipt-modal')) {
+    document.getElementById('receipt-modal').classList.remove('active');
+  }
+}
+
+// ===== ORDER FILTER =====
+function filterOrders(filter, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#orders-list .order-full').forEach(el => {
+    const s = el.dataset.status;
+    el.style.display = (filter === 'all' ||
+      (filter === 'active' && s === 'active') ||
+      (filter === 'ready' && s === 'ready') ||
+      (filter === 'done' && s === 'done')) ? 'block' : 'none';
+  });
+}
+
+// ===== QR CODE =====
+function generateQR(code) {
+  const svg = document.getElementById('qr-svg');
+  svg.innerHTML = '';
+  const size = 200;
+  const modules = 21;
+  const cellSize = Math.floor(size / modules);
+
+  // Simple deterministic QR pattern based on code
+  const seed = parseInt(code);
+  const pattern = [];
+  for (let i = 0; i < modules; i++) {
+    pattern[i] = [];
+    for (let j = 0; j < modules; j++) {
+      // Fixed finder patterns
+      const inTL = (i < 7 && j < 7);
+      const inTR = (i < 7 && j >= modules - 7);
+      const inBL = (i >= modules - 7 && j < 7);
+      if (inTL || inTR || inBL) {
+        const ri = inTR ? i : inBL ? i - (modules-7) : i;
+        const rj = inTR ? j - (modules-7) : inBL ? j : j;
+        pattern[i][j] = (ri === 0 || ri === 6 || rj === 0 || rj === 6) ||
+                         (ri >= 2 && ri <= 4 && rj >= 2 && rj <= 4);
+      } else {
+        // Data area
+        const hash = ((i * 37 + j * 13 + seed * 7) * 1234567891) % 100;
+        pattern[i][j] = hash < 50;
+      }
+    }
+  }
+
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  for (let i = 0; i < modules; i++) {
+    for (let j = 0; j < modules; j++) {
+      if (pattern[i][j]) {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', j * cellSize + 5);
+        rect.setAttribute('y', i * cellSize + 5);
+        rect.setAttribute('width', cellSize - 1);
+        rect.setAttribute('height', cellSize - 1);
+        rect.setAttribute('fill', '#0F0E0B');
+        rect.setAttribute('rx', '1');
+        g.appendChild(rect);
+      }
+    }
+  }
+  svg.appendChild(g);
+}
+
+function updateQR(orderId) {
+  const codes = { 'ord-002': '7842' };
+  const code = codes[orderId] || '0000';
+  document.getElementById('pickup-code').textContent = code;
+  generateQR(code);
+}
+updateQR('ord-002');
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ================================================================
+// ЧАТ С МАСТЕРСКОЙ через Telegram Bot
+// ================================================================
+
+// Настройки — заполните после создания бота в @BotFather
+const TG_CONFIG = {
+  botToken:     '8678659173:AAGWOl_7L7uqSvVjY1u9zEGiHDJuyoKAUDs',
+  masterChatId: '8678659173',
+  pollInterval: 3000
+};
+const TG_ENABLED = !TG_CONFIG.botToken.includes('ВСТАВЬТЕ');
+
+let chatStore = [];
+let tgLastUpdateId = 0;
+let tgPollTimer = null;
+
+function loadChatStore() {
+  try { const s = localStorage.getItem('uvyantra_chat'); if (s) chatStore = JSON.parse(s); } catch {}
+}
+function saveChatStore() {
+  try { localStorage.setItem('uvyantra_chat', JSON.stringify(chatStore.slice(-100))); } catch {}
+}
+function getChatClientId() {
+  try {
+    let id = localStorage.getItem('uvyantra_chat_id');
+    if (!id) { id = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); localStorage.setItem('uvyantra_chat_id', id); }
+    return id;
+  } catch { return 'unknown'; }
+}
+
+// ---- Отправка ----
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  autoResize(input);
+  document.getElementById('send-btn').disabled = true;
+
+  const u = loadUser();
+  const msgObj = { id: Date.now(), role: 'user', text, time: new Date().toLocaleTimeString('ru', {hour:'2-digit',minute:'2-digit'}) };
+  chatStore.push(msgObj);
+  renderChatMsg(msgObj);
+  saveChatStore();
+
+  if (TG_ENABLED) {
+    try {
+      const clientId   = getChatClientId();
+      const clientName = getFullName(u) || 'Клиент';
+      const tgText = '💍 *UVYANTRA — сообщение от клиента*\n\n'
+        + '👤 *' + clientName + '*\n'
+        + '📱 ' + (u.phone || '—') + '\n'
+        + '🆔 `' + clientId + '`\n\n'
+        + '💬 ' + text + '\n\n'
+        + '_Ответьте на это сообщение в Telegram_';
+
+      await fetch('https://api.telegram.org/bot' + TG_CONFIG.botToken + '/sendMessage', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          chat_id: TG_CONFIG.masterChatId,
+          text: tgText,
+          parse_mode: 'Markdown',
+          reply_markup: { inline_keyboard: [[{ text: '↩️ Ответить', callback_data: 'reply_' + clientId }]] }
+        })
+      });
+      updateLastMsgStatus('✓ Доставлено мастеру');
+    } catch(e) {
+      updateLastMsgStatus('⚠️ Ошибка отправки');
+    }
+  } else {
+    // Демо — автоответ
+    const demos = [
+      'Спасибо за обращение! Мастер ответит в рабочие часы пн–сб 10:00–19:00 🕙',
+      'Сообщение получено. Мастер ответит вам в течение часа. 💍',
+      'Принято! Срочно — звоните: +7 953 800 00 76'
+    ];
+    setTimeout(() => {
+      const r = { id: Date.now(), role: 'master', text: demos[Math.floor(Math.random()*demos.length)], time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}) };
+      chatStore.push(r); renderChatMsg(r); saveChatStore();
+    }, 1200);
+  }
+  document.getElementById('send-btn').disabled = false;
+}
+
+function updateLastMsgStatus(s) {
+  const items = document.querySelectorAll('#chat-messages .msg.user .msg-time');
+  if (items.length) items[items.length-1].textContent = s;
+}
+
+// ---- Получение ответов мастера (polling) ----
+async function pollTgReplies() {
+  if (!TG_ENABLED) return;
+  const clientId = getChatClientId();
+  try {
+    const res  = await fetch('https://api.telegram.org/bot' + TG_CONFIG.botToken + '/getUpdates?offset=' + (tgLastUpdateId+1) + '&timeout=0');
+    const data = await res.json();
+    if (!data.ok || !data.result.length) return;
+    for (const upd of data.result) {
+      tgLastUpdateId = upd.update_id;
+      // Мастер отвечает реплаем в Telegram — бот пересылает текст
+      const msg = upd.message;
+      if (msg && msg.reply_to_message) {
+        const orig = msg.reply_to_message.text || '';
+        if (orig.includes('`' + clientId + '`')) {
+          receiveMasterReply(msg.text);
+        }
+      }
+    }
+  } catch(e) {}
+}
+
+function receiveMasterReply(text) {
+  if (!text) return;
+  const r = { id: Date.now(), role: 'master', text, time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}) };
+  chatStore.push(r); renderChatMsg(r); saveChatStore();
+  showPushBanner('💬 Ответ от мастерской', text.slice(0,80));
+}
+
+// ---- Рендер ----
+function renderChatMsg(msg) {
+  const wrap = document.getElementById('chat-messages');
+  if (!wrap) return;
+  const isUser = msg.role === 'user';
+  const div = document.createElement('div');
+  div.className = 'msg ' + (isUser ? 'user' : 'bot');
+  div.dataset.msgId = msg.id;
+  const masterAvatar = '<div class="msg-avatar" style="background:linear-gradient(135deg,var(--gold-light),var(--gold));padding:6px;"><img src="https://static.tildacdn.com/tild6461-3565-4365-b366-343964653965/svg_1781008987015.svg" style="width:100%;height:100%;object-fit:contain;"></div>';
+  div.innerHTML = isUser
+    ? '<div><div class="msg-bubble">' + escHtml(msg.text) + '</div><div class="msg-time">' + msg.time + '</div></div>'
+    : masterAvatar + '<div><div class="msg-bubble">' + escHtml(msg.text) + '</div><div class="msg-time">' + msg.time + '</div></div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function renderAllChatMsgs() {
+  const wrap = document.getElementById('chat-messages');
+  if (!wrap) return;
+  const welcome = document.getElementById('chat-welcome-msg')?.closest('.msg');
+  wrap.innerHTML = '';
+  if (welcome) wrap.appendChild(welcome);
+  chatStore.forEach(renderChatMsg);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+// ---- Инициализация ----
+function initChat() {
+  loadChatStore();
+  renderAllChatMsgs();
+  const wm = document.getElementById('chat-welcome-msg');
+  if (wm) {
+    const u = loadUser();
+    const name = u.firstname ? ', ' + u.firstname : '';
+    wm.textContent = 'Здравствуйте' + name + '! Напишите вопрос — мастер ответит в ближайшее время. 💍';
+  }
+  if (TG_ENABLED) {
+    if (tgPollTimer) clearInterval(tgPollTimer);
+    tgPollTimer = setInterval(pollTgReplies, TG_CONFIG.pollInterval);
+  }
+}
+
+// initChat вызывается внутри nav()
+
+function addMessage(text, role) {
+  const wrap = document.getElementById('chat-messages');
+  const now = new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = role === 'user'
+    ? `<div><div class="msg-bubble">${escHtml(text)}</div><div class="msg-time">${now}</div></div>`
+    : `<div class="msg-avatar">A</div><div><div class="msg-bubble">${escHtml(text)}</div><div class="msg-time">${now}</div></div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML = `<div class="msg-avatar">A</div><div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function handleEnter(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+
+// ================================================================
+// AUTH FLOW
+// ================================================================
+let authPhone = '';
+let resendTimer = null;
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').classList.add('active');
+}
+function hideAuthScreen() {
+  document.getElementById('auth-screen').classList.remove('active');
+}
+
+async function authStepRequest() {
+  const input = document.getElementById('auth-phone-input');
+  authPhone = input.value.replace(/\D/g, '');
+  if (authPhone.length < 10) { showToast('Введите номер телефона'); return; }
+  if (authPhone.startsWith('8')) authPhone = '7' + authPhone.slice(1);
+
+  const btn = document.querySelector('#auth-step-phone .btn');
+  btn.textContent = 'Отправляем...';
+  btn.disabled = true;
+
+  try {
+    if (!DEMO_MODE) {
+      await authRequest(authPhone);
+    }
+    // Show OTP step
+    document.getElementById('auth-step-phone').style.display = 'none';
+    document.getElementById('auth-step-otp').style.display = 'block';
+    document.getElementById('auth-phone-display').textContent = '+' + authPhone;
+    document.getElementById('otp0').focus();
+    startResendTimer();
+    if (DEMO_MODE) showToast('Демо: код 1234');
+  } catch(e) {
+    showToast('Ошибка отправки SMS');
+  }
+  btn.textContent = 'Получить SMS-код';
+  btn.disabled = false;
+}
+
+async function authStepVerify() {
+  const code = [0,1,2,3].map(i => document.getElementById('otp' + i).value).join('');
+  if (code.length < 4) { showToast('Введите 4-значный код'); return; }
+
+  const btn = document.getElementById('auth-verify-btn');
+  btn.textContent = 'Проверяем...'; btn.disabled = true;
+
+  try {
+    let token;
+    if (DEMO_MODE) {
+      // Демо: любой код подходит
+      token = 'demo-token-' + Date.now();
+    } else {
+      const result = await authVerify(authPhone, code);
+      token = result.token;
+    }
+    setToken(token);
+    hideAuthScreen();
+    // Загружаем данные
+    await loadAppData();
+    showToast('Добро пожаловать! ✨');
+  } catch(e) {
+    showToast('Неверный код. Попробуйте снова.');
+    [0,1,2,3].forEach(i => { document.getElementById('otp' + i).value = ''; });
+    document.getElementById('otp0').focus();
+  }
+  btn.textContent = 'Войти'; btn.disabled = false;
+}
+
+async function authResend() {
+  document.getElementById('resend-btn').disabled = true;
+  try {
+    if (!DEMO_MODE) await authRequest(authPhone);
+    [0,1,2,3].forEach(i => { document.getElementById('otp' + i).value = ''; });
+    document.getElementById('otp0').focus();
+    startResendTimer();
+    showToast('Код отправлен повторно');
+    if (DEMO_MODE) showToast('Демо: код 1234');
+  } catch { showToast('Ошибка. Попробуйте позже.'); }
+}
+
+function authBack() {
+  document.getElementById('auth-step-otp').style.display = 'none';
+  document.getElementById('auth-step-phone').style.display = 'block';
+  if (resendTimer) clearInterval(resendTimer);
+}
+
+function startResendTimer() {
+  if (resendTimer) clearInterval(resendTimer);
+  let sec = 60;
+  document.getElementById('resend-countdown').textContent = sec;
+  resendTimer = setInterval(() => {
+    sec--;
+    document.getElementById('resend-countdown').textContent = sec;
+    if (sec <= 0) {
+      clearInterval(resendTimer);
+      const btn = document.getElementById('resend-btn');
+      btn.disabled = false;
+      btn.textContent = 'Отправить повторно';
+    }
+  }, 1000);
+}
+
+function otpInput(el, idx) {
+  // Keep only digits
+  el.value = el.value.replace(/[^0-9]/g, '').slice(-1);
+  if (el.value && idx < 3) {
+    document.getElementById('otp' + (idx + 1)).focus();
+  }
+  if (idx === 3 && el.value) {
+    // Auto-submit when last digit entered
+    setTimeout(authStepVerify, 100);
+  }
+}
+
+// Add logout to profile
+function logout() {
+  if (!confirm('Выйти из аккаунта?')) return;
+  clearToken();
+  showAuthScreen();
+  showToast('Вы вышли из аккаунта');
+}
+
+// Save profile to backend
+const _origSaveSettings = typeof saveSettings !== 'undefined' ? saveSettings : null;
+// Override saveSettings to also sync to backend
+
+
+// ================================================================
+// PUSH-УВЕДОМЛЕНИЯ (Firebase FCM)
+// ================================================================
+let firebaseApp = null;
+let firebaseMessaging = null;
+
+function initFirebase() {
+  if (!PUSH_ENABLED) return;
+  try {
+    firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+    firebaseMessaging = firebase.messaging();
+    console.log('Firebase инициализирован');
+  } catch(e) {
+    console.warn('Firebase init error:', e);
+  }
+}
+
+async function requestPushPermission() {
+  if (!PUSH_ENABLED || !firebaseMessaging) return null;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      showToast('Уведомления отключены в браузере');
+      return null;
+    }
+    const token = await firebaseMessaging.getToken({ vapidKey: FIREBASE_CONFIG.vapidKey });
+    if (token) {
+      // Сохраняем токен локально и отправляем на сервер
+      try { localStorage.setItem('uvyantra_fcm_token', token); } catch {}
+      if (!DEMO_MODE && getToken()) {
+        await api('POST', '/client/fcm-token', { token }).catch(() => {});
+      }
+      console.log('FCM токен получен');
+      return token;
+    }
+  } catch(e) {
+    console.warn('Push permission error:', e);
+  }
+  return null;
+}
+
+// Обработка входящих push в фоне
+function setupPushHandlers() {
+  if (!PUSH_ENABLED || !firebaseMessaging) return;
+  firebaseMessaging.onMessage((payload) => {
+    const { title, body } = payload.notification || {};
+    if (title) {
+      showPushBanner(title, body || '');
+      // Обновляем данные если изменился статус заказа
+      if (payload.data?.orderId) loadAppData();
+    }
+  });
+}
+
+function showPushBanner(title, body) {
+  // Удаляем предыдущий баннер если есть
+  const old = document.getElementById('push-banner');
+  if (old) old.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'push-banner';
+  banner.style.cssText = `
+    position:fixed;top:16px;left:50%;transform:translateX(-50%);
+    background:var(--dark-2);border:1px solid rgba(201,168,76,0.35);
+    border-radius:14px;padding:14px 18px;z-index:999;
+    max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+    animation:slideDown 0.3s ease;
+  `;
+  banner.innerHTML = `
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">🔔</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;">${title}</div>
+        <div style="font-size:12px;color:var(--text-muted);">${body}</div>
+      </div>
+      <button onclick="this.parentElement.parentElement.remove()"
+        style="background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0;line-height:1;">✕</button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+  setTimeout(() => banner?.remove(), 5000);
+}
+
+// ================================================================
+// АВТОРИЗАЦИЯ — улучшенная версия с запросом push после входа
+// ================================================================
+// Переопределяем authStepVerify чтобы после входа запросить push
+const _origAuthVerify = window.authStepVerify;
+
+async function authStepVerify() {
+  const code = [0,1,2,3].map(i => document.getElementById('otp' + i).value).join('');
+  if (code.length < 4) { showToast('Введите 4-значный код'); return; }
+
+  const btn = document.getElementById('auth-verify-btn');
+  btn.textContent = 'Проверяем...'; btn.disabled = true;
+
+  try {
+    let token;
+    if (DEMO_MODE) {
+      token = 'demo-token-' + Date.now();
+    } else {
+      const result = await authVerify(authPhone, code);
+      token = result.token;
+    }
+    setToken(token);
+    saveConsent();
+    // После SMS — предлагаем PIN или входим
+    afterSmsVerified();
+    // После входа — предлагаем включить уведомления
+    setTimeout(() => askPushPermission(), 2000);
+  } catch(e) {
+    showToast('Неверный код. Попробуйте снова.');
+    [0,1,2,3].forEach(i => { document.getElementById('otp' + i).value = ''; });
+    document.getElementById('otp0').focus();
+  }
+  btn.textContent = 'Войти'; btn.disabled = false;
+}
+
+function askPushPermission() {
+  if (!PUSH_ENABLED) return;
+  if (localStorage.getItem('uvyantra_push_asked')) return;
+  localStorage.setItem('uvyantra_push_asked', '1');
+
+  // Показываем красивый диалог вместо браузерного
+  showPushDialog();
+}
+
+function showPushDialog() {
+  const overlay = document.createElement('div');
+  overlay.id = 'push-dialog';
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;
+    display:flex;align-items:flex-end;justify-content:center;
+    backdrop-filter:blur(4px);
+  `;
+  overlay.innerHTML = `
+    <div style="background:var(--dark-2);border-radius:20px 20px 0 0;
+      padding:28px 24px 40px;width:100%;max-width:430px;
+      border-top:1px solid rgba(201,168,76,0.2);">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:48px;margin-bottom:12px;">🔔</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;
+          color:var(--text);margin-bottom:8px;">Включить уведомления</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+          Сообщим когда заказ будет готов, пришлём бонусы в день рождения
+          и расскажем об акциях
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-gold btn-full" onclick="enablePush()">
+          Включить уведомления
+        </button>
+        <button class="btn btn-ghost btn-full" style="font-size:13px;color:var(--text-muted);"
+          onclick="document.getElementById('push-dialog').remove()">
+          Позже
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function enablePush() {
+  document.getElementById('push-dialog')?.remove();
+  const token = await requestPushPermission();
+  if (token) {
+    showToast('🔔 Уведомления включены!');
+    // Обновляем иконку в профиле
+    updateNotifToggleUI(true);
+  }
+}
+
+function updateNotifToggleUI(on) {
+  const toggle = el('notif-toggle');
+  const knob   = el('notif-knob');
+  if (!toggle || !knob) return;
+  toggle.style.background = on ? 'var(--gold)' : 'var(--dark-4)';
+  knob.style.cssText = on
+    ? 'width:18px;height:18px;background:white;border-radius:50%;position:absolute;right:2px;top:2px;transition:right 0.2s;'
+    : 'width:18px;height:18px;background:white;border-radius:50%;position:absolute;left:2px;top:2px;transition:left 0.2s;';
+}
+
+// Переопределяем toggleNotifications чтобы работал с FCM
+async function toggleNotifications() {
+  const u = loadUser();
+  const allOn = u.notif_orders && u.notif_promos && u.notif_bday;
+  if (!allOn) {
+    // Включаем — запрашиваем разрешение браузера
+    const token = await requestPushPermission();
+    if (token) {
+      u.notif_orders = u.notif_promos = u.notif_bday = true;
+      saveUser(u);
+      updateNotifToggleUI(true);
+      showToast('Уведомления включены 🔔');
+    }
+  } else {
+    // Выключаем
+    u.notif_orders = u.notif_promos = u.notif_bday = false;
+    saveUser(u);
+    if (!DEMO_MODE && getToken()) {
+      await api('PATCH', '/client/me', { notifOrders: false, notifPromos: false, notifBday: false }).catch(() => {});
+    }
+    updateNotifToggleUI(false);
+    showToast('Уведомления отключены');
+  }
+}
+
+// Переопределяем saveSettings чтобы синхронизировал с сервером
+async function saveSettings() {
+  const u = loadUser();
+  u.firstname  = el('s-firstname').value.trim();
+  u.lastname   = el('s-lastname').value.trim();
+  u.patronymic = el('s-patronymic').value.trim();
+  u.phone      = el('s-phone').value.trim();
+  u.email      = el('s-email').value.trim();
+  u.birthday   = el('s-birthday').value;
+  u.gender     = el('s-gender').value;
+  u.notif_orders = el('t-orders').classList.contains('on');
+  u.notif_promos = el('t-promos').classList.contains('on');
+  u.notif_bday   = el('t-bday').classList.contains('on');
+
+  saveUser(u);
+  applyUserToUI(u);
+
+  // Синхронизируем с сервером
+  if (!DEMO_MODE && getToken()) {
+    try {
+      await api('PATCH', '/client/me', {
+        firstName:   u.firstname,
+        lastName:    u.lastname,
+        patronymic:  u.patronymic,
+        email:       u.email,
+        birthday:    u.birthday,
+        gender:      u.gender,
+        notifOrders: u.notif_orders,
+        notifPromos: u.notif_promos,
+        notifBday:   u.notif_bday
+      });
+    } catch(e) {
+      console.warn('Sync error:', e);
+    }
+  }
+
+  closeSettingsModal();
+  showToast('Данные сохранены ✓');
+}
+
+// Стиль для анимации push-баннера
+const pushStyle = document.createElement('style');
+pushStyle.textContent = `
+  @keyframes slideDown {
+    from { opacity:0; transform:translateX(-50%) translateY(-20px); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0); }
+  }
+`;
+document.head.appendChild(pushStyle);
+
+// Инициализируем Firebase при загрузке
+initFirebase();
+setupPushHandlers();
+
+
+// ===== LOGO UPLOAD =====
+function triggerLogoUpload() {
+  document.getElementById('logo-file-input').click();
+}
+
+function handleLogoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = document.getElementById('logo-img');
+    const placeholder = document.getElementById('logo-placeholder');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    // Persist in localStorage so logo survives reload
+    try { localStorage.setItem('uvyantra_logo', ev.target.result); } catch(err) {}
+    showToast('Логотип обновлён ✓');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Restore saved logo on load
+(function() {
+  try {
+    const saved = localStorage.getItem('uvyantra_logo');
+    if (saved) {
+      const img = document.getElementById('logo-img');
+      const placeholder = document.getElementById('logo-placeholder');
+      img.src = saved;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    }
+  } catch(err) {}
+})();
+
+// ===== USER PROFILE =====
+const DEFAULT_USER = {
+  firstname: 'Елена',
+  lastname: 'Соколова',
+  patronymic: '',
+  phone: '+7 (916) 234-56-78',
+  email: '',
+  birthday: '1990-01-15',
+  gender: 'female',
+  notif_orders: true,
+  notif_promos: true,
+  notif_bday: true
+};
+
+function loadUser() {
+  try {
+    const saved = localStorage.getItem('uvyantra_user');
+    return saved ? { ...DEFAULT_USER, ...JSON.parse(saved) } : { ...DEFAULT_USER };
+  } catch { return { ...DEFAULT_USER }; }
+}
+
+function saveUser(data) {
+  try { localStorage.setItem('uvyantra_user', JSON.stringify(data)); } catch {}
+}
+
+function getFullName(u) {
+  return [u.firstname, u.lastname].filter(Boolean).join(' ') || 'Клиент';
+}
+
+function getAvatarLetter(u) {
+  return (u.firstname || u.lastname || 'К')[0].toUpperCase();
+}
+
+function formatBirthdayDisplay(dateStr) {
+  if (!dateStr) return null;
+  try {
+    const d = new Date(dateStr + 'T00:00:00');
+    const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    return d.getDate() + ' ' + months[d.getMonth()];
+  } catch { return null; }
+}
+
+function applyUserToUI(u) {
+  const fullName = getFullName(u);
+  const letter = getAvatarLetter(u);
+  const bday = formatBirthdayDisplay(u.birthday);
+
+  // Profile screen
+  el('profile-name-display').textContent = fullName;
+  el('profile-phone-display').textContent = u.phone || 'Телефон не указан';
+  el('profile-avatar-letter').textContent = letter;
+  if (bday) {
+    el('profile-bday-display').textContent = '🎂 День рождения: ' + bday;
+    el('profile-bday-display').style.display = 'inline-flex';
+  } else {
+    el('profile-bday-display').style.display = 'none';
+  }
+
+  // Home greeting
+  const h = new Date().getHours();
+  const g = h < 6 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+  el('greeting').textContent = g + ', ' + (u.firstname || fullName);
+
+  // Check birthday today
+  if (u.birthday) {
+    const today = new Date();
+    const bd = new Date(u.birthday + 'T00:00:00');
+    if (today.getDate() === bd.getDate() && today.getMonth() === bd.getMonth()) {
+      el('birthday-banner').style.display = 'flex';
+    }
+  }
+}
+
+function el(id) { return document.getElementById(id); }
+
+// ===== SETTINGS MODAL =====
+function openSettings() {
+  const u = loadUser();
+  el('s-firstname').value = u.firstname || '';
+  el('s-lastname').value = u.lastname || '';
+  el('s-patronymic').value = u.patronymic || '';
+  el('s-phone').value = u.phone || '';
+  el('s-email').value = u.email || '';
+  el('s-birthday').value = u.birthday || '';
+  el('s-gender').value = u.gender || '';
+
+  // Toggles
+  ['orders','promos','bday'].forEach(k => {
+    const t = el('t-' + k);
+    const key = 'notif_' + k;
+    t.classList.toggle('on', u[key] !== false);
+  });
+
+  // Preview avatar letter
+  el('settings-avatar').textContent = getAvatarLetter(u);
+  el('s-firstname').oninput = el('s-lastname').oninput = function() {
+    const fn = el('s-firstname').value.trim();
+    const ln = el('s-lastname').value.trim();
+    el('settings-avatar').textContent = (fn || ln || 'К')[0].toUpperCase();
+  };
+
+  el('settings-modal').classList.add('active');
+}
+
+function closeSettingsModal(e) {
+  if (!e || e.target === el('settings-modal')) {
+    el('settings-modal').classList.remove('active');
+  }
+}
+
+function toggleSetting(el) {
+  el.classList.toggle('on');
+}
+
+function saveSettings() {
+  const u = loadUser();
+  u.firstname  = el('s-firstname').value.trim();
+  u.lastname   = el('s-lastname').value.trim();
+  u.patronymic = el('s-patronymic').value.trim();
+  u.phone      = el('s-phone').value.trim();
+  u.email      = el('s-email').value.trim();
+  u.birthday   = el('s-birthday').value;
+  u.gender     = el('s-gender').value;
+  u.notif_orders = el('t-orders').classList.contains('on');
+  u.notif_promos = el('t-promos').classList.contains('on');
+  u.notif_bday   = el('t-bday').classList.contains('on');
+
+  saveUser(u);
+  applyUserToUI(u);
+  closeSettingsModal();
+  showToast('Данные сохранены ✓');
+}
+
+function confirmDeleteData() {
+  if (confirm('Удалить все ваши данные? Это действие нельзя отменить.')) {
+    localStorage.removeItem('uvyantra_user');
+    localStorage.removeItem('uvyantra_logo');
+    applyUserToUI({ ...DEFAULT_USER });
+    closeSettingsModal();
+    showToast('Данные удалены');
+  }
+}
+
+function formatPhone(input) {
+  // Сохраняем позицию курсора
+  const sel = input.selectionStart;
+  const prevLen = input.value.length;
+
+  // Оставляем только цифры
+  let digits = input.value.replace(/\D/g, '');
+
+  // Нормализуем: 8 → 7, добавляем 7 если нет кода страны
+  if (digits.startsWith('8')) digits = '7' + digits.slice(1);
+  if (!digits.startsWith('7') && digits.length > 0) digits = '7' + digits;
+  digits = digits.slice(0, 11); // максимум 11 цифр
+
+  // Строим маску +7 (___) ___-__-__
+  let result = '';
+  if (digits.length > 0)  result = '+7';
+  if (digits.length > 1)  result += ' (' + digits.slice(1, 4);
+  if (digits.length >= 4) result += ') ' + digits.slice(4, 7);
+  if (digits.length >= 7) result += '-' + digits.slice(7, 9);
+  if (digits.length >= 9) result += '-' + digits.slice(9, 11);
+
+  input.value = result;
+
+  // Восстанавливаем курсор с поправкой на добавленные символы маски
+  const newLen = input.value.length;
+  const diff = newLen - prevLen;
+  const newPos = Math.max(0, sel + diff);
+  try { input.setSelectionRange(newPos, newPos); } catch(e) {}
+}
+
+// Инициализация маски при фокусе — сразу показываем +7
+function initPhoneMask(input) {
+  if (!input.value) {
+    input.value = '+7 (';
+    setTimeout(() => input.setSelectionRange(4, 4), 0);
+  }
+}
+
+function toggleNotifications() {
+  const u = loadUser();
+  const allOn = u.notif_orders && u.notif_promos && u.notif_bday;
+  u.notif_orders = u.notif_promos = u.notif_bday = !allOn;
+  saveUser(u);
+  const toggle = el('notif-toggle');
+  const knob = el('notif-knob');
+  if (!allOn) {
+    toggle.style.background = 'var(--gold)';
+    knob.style.right = '2px'; knob.style.left = 'auto';
+  } else {
+    toggle.style.background = 'var(--dark-4)';
+    knob.style.left = '2px'; knob.style.right = 'auto';
+  }
+  showToast(allOn ? 'Уведомления отключены' : 'Уведомления включены');
+}
+
+// Init: check auth on load — safe for Tilda
+function _appInit() {
+  const u = loadUser();
+  applyUserToUI(u);
+  if (!DEMO_MODE && !getToken()) {
+    // If protection disabled and consent given — skip auth screen
+    if (hasConsent && hasConsent() && !isPinRequired()) {
+      // Auto-login: set a local session token
+      setToken('local-session-' + Date.now());
+      return; // loadAppData called after DOMContentLoaded
+    }
+    setTimeout(() => showAuthScreen(), 100);
+    return;
+  }
+  const allOn = u.notif_orders && u.notif_promos && u.notif_bday;
+  const toggle = el('notif-toggle');
+  const knob = el('notif-knob');
+  if (toggle && !allOn) {
+    toggle.style.background = 'var(--dark-4)';
+    if (knob) { knob.style.left = '2px'; knob.style.right = 'auto'; }
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _appInit);
+} else {
+  _appInit();
+}
+
+
+// ================================================================
+// DOCS SCREEN
+// ================================================================
+const DOC_CONTENT = {
+  terms: {
+    title: 'Пользовательское соглашение',
+    body: `<b>1. Общие положения</b><br>
+Настоящее Соглашение регулирует отношения между ООО "ЮВИЯНТРА" (далее — Компания) и пользователем мобильного приложения UVYANTRA (далее — Приложение).<br><br>
+<b>2. Предмет соглашения</b><br>
+Компания предоставляет пользователю доступ к функциям Приложения: просмотр статуса заказов, участие в бонусной программе, получение уведомлений, оформление электронных квитанций.<br><br>
+<b>3. Права и обязанности пользователя</b><br>
+Пользователь обязуется предоставлять достоверные данные, не передавать учётные данные третьим лицам, использовать Приложение в соответствии с законодательством РФ.<br><br>
+<b>4. Ответственность</b><br>
+Компания не несёт ответственности за перебои в работе Приложения, вызванные действиями третьих лиц или форс-мажорными обстоятельствами.<br><br>
+<b>5. Изменения</b><br>
+Компания вправе изменять условия Соглашения, уведомив пользователей через Приложение не менее чем за 7 дней.`
+  },
+
+  privacy: {
+    title: 'Политика конфиденциальности',
+    body: `<b>Оператор:</b> ООО "ЮВИЯНТРА", ИНН 5406837310<br>
+г. Новосибирск, ул. Максима Горького д. 54 офис 315<br><br>
+<b>1. Собираемые данные</b><br>
+Приложение обрабатывает: ФИО, номер телефона, дату рождения, историю заказов, Push-токен устройства.<br><br>
+<b>2. Цели обработки</b><br>
+— Идентификация пользователя<br>
+— Уведомления о статусе заказов<br>
+— Начисление бонусов<br>
+— Поздравление с днём рождения<br><br>
+<b>3. Основание обработки</b><br>
+Обработка осуществляется на основании согласия субъекта персональных данных (ст. 6 Федерального закона № 152-ФЗ).<br><br>
+<b>4. Хранение данных</b><br>
+Данные хранятся на защищённых серверах на территории РФ. Срок хранения — в течение действия договора и 3 лет после его окончания.<br><br>
+<b>5. Права пользователя</b><br>
+Вы вправе запросить, изменить или удалить свои данные, обратившись по адресу: info@uvyantra.ru`
+  },
+
+  consent: {
+    title: 'Согласие на обработку ПД',
+    body: `Я, субъект персональных данных, в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных» даю согласие ООО "ЮВИЯНТРА" (ИНН 5406837310) на обработку следующих персональных данных:<br><br>
+— Фамилия, имя, отчество<br>
+— Номер мобильного телефона<br>
+— Дата рождения<br>
+— История обращений и заказов<br>
+— Push-токен мобильного устройства<br><br>
+<b>Цели обработки:</b> исполнение договора на оказание ювелирных услуг, информирование о статусе заказов, участие в бонусной программе, отправка push-уведомлений.<br><br>
+<b>Способы обработки:</b> сбор, запись, систематизация, накопление, хранение, уточнение, использование, передача (при наличии согласия), обезличивание, блокирование, удаление.<br><br>
+Согласие действует бессрочно и может быть отозвано путём подачи письменного заявления оператору.<br><br>
+<i>Согласие считается предоставленным с момента регистрации в приложении.</i>`
+  },
+
+  bonus: {
+    title: 'Правила бонусной программы',
+    body: `<b>1. Участники</b><br>
+В бонусной программе участвуют все клиенты, зарегистрированные в приложении UVYANTRA.<br><br>
+<b>2. Уровни и начисления</b><br>
+🤍 <b>Серебро</b> (от 0 ₽) — 5% от суммы каждого заказа<br>
+💛 <b>Золото</b> (от 100 000 ₽) — 7% от суммы заказа<br>
+💎 <b>Платина</b> (от 500 000 ₽) — 10% от суммы заказа<br>
+👑 <b>VIP</b> (от 1 000 000 ₽) — 15% от суммы заказа<br><br>
+<b>3. Условия начисления</b><br>
+Бонусы начисляются после получения готового заказа клиентом. Бонусы за день рождения (500 ₽) начисляются автоматически в день рождения клиента.<br><br>
+<b>4. Использование бонусов</b><br>
+Бонусы применяются при оплате услуг мастерской. Нельзя оплатить бонусами более 50% стоимости заказа.<br><br>
+<b>5. Срок действия</b><br>
+Бонусы действительны в течение 12 месяцев с момента начисления. Неиспользованные бонусы сгорают.<br><br>
+<b>6. Уровень программы</b><br>
+Уровень определяется по накопленной сумме всех заказов за всё время. При достижении порога уровень повышается автоматически.`
+  },
+
+  offer: {
+    title: 'Публичная оферта',
+    body: `ООО "ЮВИЯНТРА", именуемое в дальнейшем «Исполнитель», публикует настоящую оферту на оказание ювелирных услуг.<br><br>
+<b>1. Предмет договора</b><br>
+Исполнитель оказывает ювелирные услуги: ремонт, изготовление, чистка, гравировка, закрепка камней и иные работы с ювелирными изделиями.<br><br>
+<b>2. Порядок приёма заказа</b><br>
+Заказ оформляется в мастерской с выдачей квитанции по форме БО-10ДМ. Клиент несёт ответственность за достоверность информации об изделии.<br><br>
+<b>3. Сроки выполнения</b><br>
+Сроки указываются в квитанции. Исполнитель вправе продлить срок, уведомив клиента не позднее дня истечения.<br><br>
+<b>4. Гарантии</b><br>
+Гарантийный срок составляет от 3 до 12 месяцев в зависимости от вида работ и указывается в квитанции.<br><br>
+<b>5. Стоимость и оплата</b><br>
+Стоимость услуг определяется прейскурантом. Оплата производится при получении заказа наличными или безналичным расчётом.<br><br>
+<b>6. Ответственность</b><br>
+Исполнитель несёт ответственность за сохранность изделия в период выполнения работ в соответствии с законодательством РФ.`
+  },
+
+  requisites: {
+    title: 'Реквизиты организации',
+    body: `<b>Полное наименование:</b><br>Общество с ограниченной ответственностью "ЮВИЯНТРА"<br><br>
+<b>Сокращённое наименование:</b> ООО "ЮВИЯНТРА"<br><br>
+<b>ИНН:</b> 5406837310<br>
+<b>КПП:</b> 540601001<br>
+<b>ОГРН:</b> —<br><br>
+<b>Юридический адрес:</b><br>г. Новосибирск, ул. Максима Горького д. 54 офис 315<br><br>
+<b>Телефон:</b> +7 953 800 00 76<br>
+<b>Сайт:</b> www.uvyantra.ru<br>
+<b>Email:</b> info@uvyantra.ru<br><br>
+<b>Режим работы:</b> пн–сб 10:00–19:00`
+  }
+};
+
+function openDoc(key) {
+  const doc = DOC_CONTENT[key];
+  if (!doc) return;
+  document.getElementById('doc-modal-title').textContent = doc.title;
+  document.getElementById('doc-modal-body').innerHTML = doc.body;
+  document.getElementById('doc-modal').classList.add('active');
+}
+
+function closeDocModal(e) {
+  if (!e || e.target === document.getElementById('doc-modal')) {
+    document.getElementById('doc-modal').classList.remove('active');
+  }
+}
+
+
+// ================================================================
+// CONSENT
+// ================================================================
+function checkConsentReady() {
+  const pd    = document.getElementById('consent-pd');
+  const terms = document.getElementById('consent-terms');
+  const btn   = document.getElementById('auth-sms-btn');
+  if (!pd || !terms || !btn) return;
+
+  const ready = pd.checked && terms.checked;
+  btn.disabled = !ready;
+  btn.style.opacity = ready ? '1' : '0.45';
+}
+
+function saveConsent() {
+  const data = {
+    pd:    document.getElementById('consent-pd')?.checked    || false,
+    terms: document.getElementById('consent-terms')?.checked || false,
+    bonus: document.getElementById('consent-bonus')?.checked || false,
+    date:  new Date().toISOString()
+  };
+  try { localStorage.setItem('uvyantra_consent', JSON.stringify(data)); } catch {}
+}
+
+// Consent already given — skip consent screen on next login
+// Checkboxes are NEVER pre-checked — user must check them manually on first registration
+function hasConsent() {
+  try {
+    const saved = localStorage.getItem('uvyantra_consent');
+    if (!saved) return false;
+    const c = JSON.parse(saved);
+    return c.pd && c.terms; // both mandatory fields must be true
+  } catch { return false; }
+}
+
+// showAuthScreen is defined in security section below
+
+
+// ================================================================
+// PIN-КОД
+// ================================================================
+let _pinTemp    = '';  // временный PIN при установке
+let _pinConfirm = false; // ждём подтверждения
+
+function getPin()     { try { return localStorage.getItem('uvyantra_pin') || null; } catch { return null; } }
+function setPin(pin)  { try { localStorage.setItem('uvyantra_pin', pin); } catch {} }
+function clearPin()   { try { localStorage.removeItem('uvyantra_pin'); } catch {} }
+function hasPin()     { return !!getPin(); }
+
+// Универсальный ввод цифр PIN
+function pinInput(el, idx, mode) {
+  el.value = el.value.replace(/[^0-9]/g, '').slice(-1);
+
+  // Авто-переход к следующему полю
+  const prefixes = { 'set-pin':'pin', 'confirm-pin':'pinc', 'pin-login':'pinl', 'change':'pinchg' };
+  const prefix = prefixes[mode];
+  if (el.value && idx < 3) {
+    document.getElementById(prefix + (idx+1))?.focus();
+  }
+
+  // Когда введены все 4 цифры
+  if (idx === 3 && el.value) {
+    setTimeout(() => {
+      const code = [0,1,2,3].map(i => document.getElementById(prefix+i)?.value || '').join('');
+      if (code.length === 4) handlePinComplete(mode, code);
+    }, 80);
+  }
+}
+
+function getPinValue(prefix) {
+  return [0,1,2,3].map(i => document.getElementById(prefix+i)?.value || '').join('');
+}
+
+function clearPinInputs(prefix) {
+  [0,1,2,3].forEach(i => {
+    const el = document.getElementById(prefix+i);
+    if (el) el.value = '';
+  });
+  document.getElementById(prefix+'0')?.focus();
+}
+
+function handlePinComplete(mode, code) {
+  if (mode === 'set-pin') {
+    // Сохраняем временно, переходим к подтверждению
+    _pinTemp = code;
+    showPinStep('confirm-pin');
+    document.getElementById('pinc0')?.focus();
+
+  } else if (mode === 'confirm-pin') {
+    if (code === _pinTemp) {
+      // PIN совпал — сохраняем
+      setPin(code);
+      _pinTemp = '';
+      finishAuthWithPin();
+    } else {
+      // Не совпал
+      const hint = document.getElementById('pin-confirm-hint');
+      hint.textContent = '❌ PIN не совпадает, попробуйте снова';
+      hint.style.color = 'var(--danger)';
+      clearPinInputs('pinc');
+      setTimeout(() => { hint.textContent = 'Введите PIN повторно'; hint.style.color = 'var(--text-dim)'; }, 2000);
+    }
+
+  } else if (mode === 'pin-login') {
+    // Проверяем PIN при входе
+    if (code === getPin()) {
+      hideAuthScreen();
+      loadAppData();
+      showToast('Добро пожаловать! ✨');
+    } else {
+      const hint = document.getElementById('pin-login-hint');
+      hint.textContent = '❌ Неверный PIN';
+      hint.style.color = 'var(--danger)';
+      clearPinInputs('pinl');
+      setTimeout(() => { hint.textContent = ''; }, 2000);
+    }
+
+  } else if (mode === 'change') {
+    // Меняем PIN из профиля (без подтверждения старого)
+    setPin(code);
+    closePinChange();
+    updatePinMenuLabel();
+    showToast('PIN-код обновлён ✓');
+  }
+}
+
+// Показ нужного шага PIN
+function showPinStep(step) {
+  ['auth-step-phone','auth-step-otp','auth-step-set-pin','auth-step-confirm-pin','auth-step-pin-login']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  const target = document.getElementById('auth-step-' + step);
+  if (target) target.style.display = 'block';
+}
+
+function skipPinSetup() {
+  _pinTemp = '';
+  finishAuthWithPin();
+}
+
+function finishAuthWithPin() {
+  hideAuthScreen();
+  loadAppData();
+  updatePinMenuLabel();
+  if (hasPin()) showToast('PIN-код установлен 🔐');
+  else showToast('Добро пожаловать! ✨');
+}
+
+// Вход по PIN для повторных пользователей
+function loginWithSmsInstead() {
+  // Показываем телефон с пометкой что это восстановление PIN
+  showPinStep('phone');
+  const hint = document.getElementById('auth-otp-hint');
+  // После успешного SMS — предложим установить новый PIN
+  _pinRecovery = true;
+}
+let _pinRecovery = false;
+
+// После успешного SMS-кода — проверяем нужно ли ставить PIN
+function afterSmsVerified() {
+  if (!hasPin() || _pinRecovery) {
+    // Первая регистрация или восстановление PIN после SMS
+    _pinRecovery = false;
+    const title = document.querySelector('#auth-step-set-pin .auth-brand-like');
+    showPinStep('set-pin');
+    // Обновляем заголовок если это восстановление
+    const sub = document.querySelector('#auth-step-set-pin div[style*="font-size:12px"]');
+    if (sub && _pinRecovery) sub.textContent = 'Установите новый PIN-код';
+    document.getElementById('pin0')?.focus();
+  } else {
+    finishAuthWithPin();
+  }
+}
+
+// showAuthScreen unified — see security section
+
+// ----------------------------------------------------------------
+// PIN change from profile
+// ----------------------------------------------------------------
+function openPinChange() {
+  const title = document.getElementById('pin-change-title');
+  const sub   = document.getElementById('pin-change-sub');
+  if (title) title.textContent = hasPin() ? 'Изменить PIN-код' : 'Установить PIN-код';
+  if (sub)   sub.textContent   = 'Введите новый 4-значный PIN';
+  clearPinInputs('pinchg');
+  document.getElementById('pin-change-error').textContent = '';
+  document.getElementById('pin-change-modal').classList.add('active');
+  setTimeout(() => document.getElementById('pinchg0')?.focus(), 200);
+}
+
+function closePinChange(e) {
+  if (!e || e.target === document.getElementById('pin-change-modal')) {
+    document.getElementById('pin-change-modal').classList.remove('active');
+  }
+}
+
+function removePin() {
+  if (confirm('Удалить PIN-код? Следующий вход потребует SMS.')) {
+    clearPin();
+    closePinChange();
+    updatePinMenuLabel();
+    showToast('PIN-код удалён');
+  }
+}
+
+function updatePinMenuLabel() {
+  const title = document.getElementById('pin-menu-title');
+  const sub   = document.getElementById('pin-menu-sub');
+  if (title) title.textContent = hasPin() ? 'Изменить PIN-код' : 'Установить PIN-код';
+  if (sub)   sub.textContent   = hasPin() ? 'PIN активен · быстрый вход' : 'Быстрый вход без SMS';
+}
+
+// Init PIN menu label on load
+(function() {
+  setTimeout(updatePinMenuLabel, 300);
+})();
+
+
+// ================================================================
+// БЕЗОПАСНОСТЬ — вход без PIN / биометрия
+// ================================================================
+
+function isPinRequired() {
+  try { return localStorage.getItem('uvyantra_pin_required') !== 'false'; } catch { return true; }
+}
+function setPinRequired(val) {
+  try { localStorage.setItem('uvyantra_pin_required', val ? 'true' : 'false'); } catch {}
+}
+
+function isBiometricEnabled() {
+  try { return localStorage.getItem('uvyantra_biometric') === 'true'; } catch { return false; }
+}
+function setBiometricEnabled(val) {
+  try { localStorage.setItem('uvyantra_biometric', val ? 'true' : 'false'); } catch {}
+}
+
+// ---- Переключатель "Открывать без авторизации" ----
+function togglePinRequired() {
+  const current = isPinRequired();
+  if (!current) {
+    // Включаем защиту обратно
+    setPinRequired(true);
+    updateSecurityToggles();
+    showToast('Защита включена — вход по PIN или SMS');
+  } else {
+    // Выключаем защиту — подтверждаем
+    if (confirm('Приложение будет открываться без запроса PIN или SMS. Продолжить?')) {
+      setPinRequired(false);
+      updateSecurityToggles();
+      showToast('Защита отключена — приложение открывается сразу');
+    }
+  }
+}
+
+// ---- Биометрия (WebAuthn / браузерный API) ----
+async function toggleBiometric() {
+  if (isBiometricEnabled()) {
+    // Выключаем
+    setBiometricEnabled(false);
+    updateSecurityToggles();
+    showToast('Биометрия отключена');
+    return;
+  }
+
+  // Проверяем поддержку
+  if (!window.PublicKeyCredential) {
+    showToast('Биометрия не поддерживается на этом устройстве');
+    return;
+  }
+
+  try {
+    // Проверяем доступность биометрии на устройстве
+    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (!available) {
+      showToast('Биометрия недоступна — настройте Touch ID в системе');
+      return;
+    }
+
+    // Запрашиваем подтверждение через биометрию
+    const challenge = new Uint8Array(32);
+    window.crypto.getRandomValues(challenge);
+
+    await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'UVYANTRA', id: location.hostname || 'localhost' },
+        user: {
+          id: new TextEncoder().encode(loadUser().phone || 'user'),
+          name: loadUser().phone || 'user',
+          displayName: getFullName(loadUser()) || 'Клиент'
+        },
+        pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required'
+        },
+        timeout: 30000
+      }
+    });
+
+    setBiometricEnabled(true);
+    updateSecurityToggles();
+    showToast('👆 Биометрия подключена!');
+
+  } catch(e) {
+    if (e.name === 'NotAllowedError') {
+      showToast('Доступ к биометрии отклонён');
+    } else {
+      showToast('Ошибка настройки биометрии');
+    }
+  }
+}
+
+// Вход по биометрии
+async function loginWithBiometric() {
+  try {
+    const challenge = new Uint8Array(32);
+    window.crypto.getRandomValues(challenge);
+
+    await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        userVerification: 'required',
+        timeout: 30000
+      }
+    });
+
+    // Успешная биометрия — входим
+    hideAuthScreen();
+    loadAppData();
+    showToast('Добро пожаловать! ✨');
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+// Обновление состояния переключателей
+function updateSecurityToggles() {
+  // PIN required toggle
+  const noPinOn  = !isPinRequired();
+  const noPinTgl = document.getElementById('no-pin-toggle');
+  const noPinKnb = document.getElementById('no-pin-knob');
+  const noPinSub = document.getElementById('no-pin-sub');
+
+  if (noPinTgl) noPinTgl.style.background = noPinOn ? 'var(--gold)' : 'var(--dark-4)';
+  if (noPinKnb) noPinKnb.style.left = noPinOn ? '20px' : '2px';
+  if (noPinSub) noPinSub.textContent = noPinOn
+    ? 'Приложение открывается сразу'
+    : 'Защита активна (PIN или SMS)';
+
+  // Biometric toggle
+  const bioOn  = isBiometricEnabled();
+  const bioTgl = document.getElementById('biometric-toggle');
+  const bioKnb = document.getElementById('biometric-knob');
+  const bioSub = document.getElementById('biometric-sub');
+
+  if (bioTgl) bioTgl.style.background = bioOn ? 'var(--gold)' : 'var(--dark-4)';
+  if (bioKnb) bioKnb.style.left = bioOn ? '20px' : '2px';
+  if (bioSub) bioSub.textContent = bioOn
+    ? 'Touch ID / Face ID активен'
+    : 'Использовать Touch ID / Face ID';
+
+  // Скрываем биометрию если нет поддержки
+  const bioItem = document.getElementById('biometric-menu-item');
+  if (bioItem && !window.PublicKeyCredential) {
+    bioItem.style.display = 'none';
+  }
+
+  // PIN menu label
+  updatePinMenuLabel();
+}
+
+// Обновлённый showAuthScreen с биометрией
+function showAuthScreen() {
+  const screen = document.getElementById('auth-screen');
+  if (!screen) return;
+
+  if (isBiometricEnabled() && hasConsent()) {
+    // Сначала пробуем биометрию
+    screen.classList.add('active');
+    showPinStep('pin-login');
+    // Автоматически запускаем биометрию
+    setTimeout(async () => {
+      const ok = await loginWithBiometric();
+      if (!ok && hasPin() && isPinRequired()) {
+        // Биометрия не прошла — показываем PIN
+        showPinStep('pin-login');
+        document.getElementById('pinl0')?.focus();
+      } else if (!ok) {
+        showPinStep('phone');
+      }
+    }, 400);
+
+  } else if (hasPin() && isPinRequired() && hasConsent()) {
+    screen.classList.add('active');
+    showPinStep('pin-login');
+    // Show hint that SMS available for recovery
+    const sub = document.getElementById('pin-login-sub');
+    if (sub) sub.textContent = 'Введите PIN для входа';
+    document.getElementById('pinl0')?.focus();
+
+  } else if (hasConsent() && !isPinRequired()) {
+    // Защита отключена — входим сразу без экрана авторизации
+    loadAppData();
+    return;
+
+  } else if (hasConsent()) {
+    // Согласие есть, нет PIN — показываем телефон
+    const cb = document.getElementById('consent-block');
+    if (cb) cb.style.display = 'none';
+    const btn = document.getElementById('auth-sms-btn');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    screen.classList.add('active');
+    showPinStep('phone');
+
+  } else {
+    screen.classList.add('active');
+    showPinStep('phone');
+  }
+}
+
+// Добавляем кнопку биометрии на экран PIN-входа
+function addBiometricButton() {
+  if (!isBiometricEnabled()) return;
+  const loginStep = document.getElementById('auth-step-pin-login');
+  if (!loginStep || loginStep.querySelector('.bio-btn')) return;
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-outline btn-full bio-btn';
+  btn.style.marginTop = '10px';
+  btn.innerHTML = '👆 Войти по отпечатку';
+  btn.onclick = async () => {
+    const ok = await loginWithBiometric();
+    if (!ok) showToast('Биометрия не распознана');
+  };
+  loginStep.appendChild(btn);
+}
+
+// Init security toggles on load
+(function() {
+  setTimeout(() => {
+    updateSecurityToggles();
+    addBiometricButton();
+  }, 400);
+})();
+
+</script>
+</body>
+</html>
