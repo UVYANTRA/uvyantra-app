@@ -589,7 +589,7 @@ setTimeout(() => t.classList.remove('show'), 2800);
 }
 const TG_CONFIG = {
 botToken:     '8678659173:AAGWOl_7L7uqSvVjY1u9zEGiHDJuyoKAUDs',
-masterChatId: '8678659173',
+masterChatId: '-5131504174',
 pollInterval: 3000
 };
 const TG_ENABLED = !TG_CONFIG.botToken.includes('ВСТАВЬТЕ');
