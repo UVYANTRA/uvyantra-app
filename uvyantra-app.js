@@ -630,7 +630,7 @@ const tgText = '💍 *UVYANTRA — сообщение от клиента*\n\n'
 + '📱 ' + (u.phone || '—') + '\n'
 + '🆔 `' + clientId + '`\n\n'
 + '💬 ' + text + '\n\n'
-+ '_Ответьте на это сообщение в Telegram_';
++ '_Сделайте Reply на это сообщение чтобы клиент получил ответ_';
 await fetch('https://api.telegram.org/bot' + TG_CONFIG.botToken + '/sendMessage', {
 method: 'POST',
 headers: {'Content-Type':'application/json'},
@@ -638,7 +638,7 @@ body: JSON.stringify({
 chat_id: TG_CONFIG.masterChatId,
 text: tgText,
 parse_mode: 'Markdown',
-reply_markup: { inline_keyboard: [[{ text: '↩️ Ответить', callback_data: 'reply_' + clientId }]] }
+parse_mode: 'Markdown'
 })
 });
 updateLastMsgStatus('✓ Доставлено мастеру');
@@ -672,9 +672,9 @@ if (!data.ok || !data.result.length) return;
 for (const upd of data.result) {
 tgLastUpdateId = upd.update_id;
 const msg = upd.message;
-if (msg && msg.reply_to_message) {
+if (msg && msg.reply_to_message && msg.text) {
 const orig = msg.reply_to_message.text || '';
-if (orig.includes('`' + clientId + '`')) {
+if (orig.includes(clientId)) {
 receiveMasterReply(msg.text);
 }
 }
