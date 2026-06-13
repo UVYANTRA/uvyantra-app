@@ -1,0 +1,261 @@
+// ================================================================
+// UVYANTRA CRM — Database Schema
+// ================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------
+// СОТРУДНИКИ
+// ----------------------------------------------------------------
+enum Role {
+  ADMIN       // Администратор / владелец
+  MASTER      // Мастер
+  RECEIVER    // Приёмщик
+  DESIGNER3D  // 3D дизайнер
+  FREELANCE3D // 3D фрилансер
+}
+
+model User {
+  id           String   @id @default(cuid())
+  login        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(MASTER)
+  percent      Float    @default(0)   // сдельный процент от заказов
+  bonus        Float    @default(0)   // фиксированная премия
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  ordersAsMaster   Order[] @relation("OrderMaster")
+  ordersAsReceiver Order[] @relation("OrderReceiver")
+}
+
+// ----------------------------------------------------------------
+// КЛИЕНТЫ
+// ----------------------------------------------------------------
+enum ClientType {
+  REPAIR        // Клиент РЕМОНТ
+  MANUFACTURE   // Клиент ИЗГОТОВЛЕНИЕ
+}
+
+model Client {
+  id        String     @id @default(cuid())
+  name      String     // Фамилия Имя Отчество
+  phone     String     @unique
+  type      ClientType @default(REPAIR)
+  birthday  String?    // ДД-ММ-ГГГГ
+  source    String?    // Откуда узнали (2 ГИС, Instagram...)
+  address   String?    // Фактический адрес
+  passportNum    String?
+  passportDate   String?
+  passportIssued String?
+  bonusBalance   Int    @default(0) // бонусные баллы
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  orders Order[]
+}
+
+// ----------------------------------------------------------------
+// СПРАВОЧНИКИ
+// ----------------------------------------------------------------
+model Material {
+  id    String @id @default(cuid())
+  name  String @unique // "Золото 585°"
+  probe Int?           // 585, 925, null для бижутерии
+  order Int    @default(0)
+}
+
+model ServiceCatalog {
+  id       String @id @default(cuid())
+  category String // Изготовление / Моделирование / Ремонт
+  name     String
+  order    Int    @default(0)
+
+  @@unique([category, name])
+}
+
+model ItemType {
+  id    String @id @default(cuid())
+  name  String @unique // Кольцо, Цепь, Браслет...
+  order Int    @default(0)
+}
+
+// ----------------------------------------------------------------
+// ЗАКАЗЫ
+// ----------------------------------------------------------------
+enum OrderStatus {
+  PENDING   // Принят в работу
+  PROGRESS  // В работе
+  READY     // Готово
+  DONE      // Получено
+}
+
+enum OrderType {
+  REPAIR        // Ремонт ЮИ
+  MANUFACTURE   // Изготовление ЮИ
+  MODELING_3D   // 3D моделирование
+}
+
+model Order {
+  id     String      @id // "AUR-2026-0200"
+  status OrderStatus @default(PENDING)
+  type   OrderType   @default(REPAIR)
+
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  // Снэпшот данных клиента на момент заказа (на случай изменений)
+  clientName String
+  phone      String
+
+  title           String  // основное описание / название первой услуги
+  itemDescription String? // что принято от клиента (список через запятую)
+  material        String? // материалы через запятую
+  weight          String? // вес первой позиции
+
+  master   User?   @relation("OrderMaster", fields: [masterId], references: [id])
+  masterId String?
+
+  receiver   User?   @relation("OrderReceiver", fields: [receiverId], references: [id])
+  receiverId String?
+
+  price  Int @default(0) // итоговая стоимость (с учётом срочности)
+  prepay Int @default(0) // предоплата
+
+  readyAt          String? // дата готовности (YYYY-MM-DD)
+  guaranteeMonths  Int     @default(0)
+
+  // Технические поля
+  metalColor   String?
+  chemMass     String? // суммарная хим. масса 999°
+  sizeNeed     String?
+  sizeCurrent  String?
+  inserts      String? // описание вставок
+  techDesc     String? // техническое описание
+  urgent       Boolean @default(false)
+  pickupCode   String? // код выдачи (4 цифры)
+
+  // Вес после работ (заполняется вручную при выдаче)
+  withStone    String?
+  withoutStone String?
+  ostatok      String? // остаток металла
+  naIzdelie    String? // на изделие
+
+  // Данные клиента для документов
+  clientAddress  String?
+  passportNum    String?
+  passportDate   String?
+  passportIssued String?
+
+  desc String? // примечание
+
+  photoUrl String? // ссылка на фото изделия
+
+  lines OrderLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  closedAt  DateTime?
+}
+
+// Позиция заказа (одно изделие)
+model OrderLine {
+  id      String @id @default(cuid())
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String
+
+  item     String  // Кольцо, Цепь...
+  material String? // Золото 585°...
+  weight   String? // вес, г
+  chemMass String? // хим. масса 999°, авто
+  losses   String  @default("1.5") // % потерь
+
+  withStone    String?
+  withoutStone String?
+  ostatok      String?
+  naIzdelie    String?
+
+  order_index Int @default(0)
+
+  services OrderLineService[]
+}
+
+// Услуга в составе позиции (до 3х на позицию)
+model OrderLineService {
+  id          String    @id @default(cuid())
+  orderLine   OrderLine @relation(fields: [orderLineId], references: [id], onDelete: Cascade)
+  orderLineId String
+
+  service String
+  price   Int    @default(0)
+}
+
+// ----------------------------------------------------------------
+// СКЛАД
+// ----------------------------------------------------------------
+enum MetalUnit {
+  GRAM
+}
+
+model MetalStock {
+  id       String @id @default(cuid())
+  material String @unique // "Золото 585°"
+  grams    Float  @default(0)
+}
+
+model MetalTransaction {
+  id        String   @id @default(cuid())
+  material  String
+  grams     Float    // положительное = приход, отрицательное = расход
+  reason    String   // "Изготовление заказа AUR-2026-0200", "Закупка" ...
+  orderId   String?
+  createdAt DateTime @default(now())
+}
+
+model Stone {
+  id       String @id @default(cuid())
+  name     String // "Бриллиант"
+  shape    String? // "Круг", "Овал"...
+  size     String? // "3мм"
+  quantity Int     @default(0)
+}
+
+model Consumable {
+  id       String @id @default(cuid())
+  name     String @unique // "Полировальная паста"
+  quantity Float  @default(0)
+  unit     String @default("шт") // шт, г, мл...
+}
+
+// ----------------------------------------------------------------
+// КАССА
+// ----------------------------------------------------------------
+enum CashType {
+  INCOME  // приход
+  EXPENSE // расход
+}
+
+enum PaymentMethod {
+  CASH       // наличные
+  CARD       // безналичные / эквайринг
+}
+
+model CashTransaction {
+  id        String        @id @default(cuid())
+  type      CashType
+  amount    Int
+  method    PaymentMethod @default(CASH)
+  category  String        // "Предоплата", "Окончательный расчёт", "Закупка материалов"...
+  orderId   String?
+  comment   String?
+  userId    String?
+  createdAt DateTime      @default(now())
+}
